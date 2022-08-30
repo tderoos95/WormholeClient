@@ -43,7 +43,7 @@ function Mutate(string Command, PlayerController PC)
     }
     else if(StartsWith(Command, "ConnectTo"))
     {
-        GivenIp = Right(Command, Len("ConnectTo") + 1);
+        GivenIp = Mid(Command, Len("ConnectTo") + 1);
         PC.ClientMessage("Connecting to " $ GivenIp $ ":" $ Settings.Port);
         Connection.SetConnection(GivenIp, Settings.Port);
     }

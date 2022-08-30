@@ -3,21 +3,21 @@ class WormholeEventGridSubscriber extends EventGridSubscriber;
 var WormholeConnection WormholeConnection;
 
 // Match events
-const MatchInfo = "match/info";
-const MatchStarted = "match/started";
-const MatchEnded = "match/ended";
-const MapSwitch = "match/mapswitch";
+const MatchInfo          = "match/info";
+const MatchStarted       = "match/started";
+const MatchEnded         = "match/ended";
+const MapSwitch          = "match/mapswitch";
 
 // Player events
-const PlayerConnecting = "player/connecting";
-const PlayerConnected = "player/connected";
+const PlayerConnecting   = "player/connecting";
+const PlayerConnected    = "player/connected";
 const PlayerDisconnected = "player/disconnected";
-const PlayerChat = "player/chat";
-const PlayerKilled = "player/killed";
-const PlayerResurrected = "player/resurrected";
+const PlayerChat         = "player/chat";
+const PlayerKilled       = "player/killed";
+const PlayerResurrected  = "player/resurrected";
 
 // RPG Events
-const PlayerLeveledUp = "player/rpg/leveledup";
+const PlayerLeveledUp    = "player/rpg/leveledup";
 
 function ProcessEvent(string Topic, JsonObject EventData)
 {
