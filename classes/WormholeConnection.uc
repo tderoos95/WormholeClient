@@ -60,13 +60,29 @@ function Connect();
 
 function SendEventData(string Topic, JsonObject EventData)
 {
-	local JsonObject Json;
+	local JsonObject ProcessEventJson, Json;
+	local array<JsonObject> Arguments;
+
+	// Desired message template:
+	// "{""type"":1,
+	// ""target"":""ProcessEvent"",
+	// ""arguments"":[{""Topic"":""authentication/request"",
+	//                 ""Data"":{""Token"":"""",""GameServerName"":""""}}]}"
+
+	// Create SignalR wrapper json
+	ProcessEventJson = new class'JsonObject';
+	ProcessEventJson.AddInt("type", 1);
+	ProcessEventJson.AddString("target", "ProcessEvent");
 
 	Json = new class'JsonObject';
 	Json.AddString("Topic", Topic);
 	Json.AddJson("Data", EventData);
+	
+	Arguments.Length = 1;
+	Arguments[0] = Json;
+	ProcessEventJson.AddArrayJson("arguments", Arguments);
 
-	SendJson(Json);
+	SendJson(ProcessEventJson);
 }
 
 function SendJson(JsonObject Json)
@@ -169,6 +185,10 @@ state AwaitingHandshake
 
 		Json = class'JsonConvert'.static.Deserialize(Message);
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
+
+		if(Len(Json.GetString("error")) == 0)
+			GotoState('AwaitingAuthentication');
+		else GotoState('NotConnected');
 	}
 
 	function SendHandshakeRequest()
@@ -194,26 +214,45 @@ Begin:
 	SendHandshakeRequest();
 }
 
-state HandshakePerformed
+state AwaitingAuthentication // HandshakePerformed
 {
 	function SendAuthenticationRequest()
 	{
 		local JsonObject Json;
 
+		log("Sending authentication request", Name);
+
 		Json = new class'JsonObject';
 		Json.AddString("Token", Settings.Token);
+		Json.AddString("GameServerName", "Unreal Universe");
 		SendEventData("authentication/request", Json);
 	}
 
+	function ReceivedText(string Message)
+	{
+		local JsonObject Json;
+		
+		if(Settings.bDebug)
+			log("Received raw text: " $ Message, Name);
+		
+		if(class'JsonConvert'.static.EndsWith(Message, EndOfMessageChar))
+			Message = Left(Message, Len(Message) - 1);
+		
+		Json = class'JsonConvert'.static.Deserialize(Message);
+		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
+	}
+
 begin:
-	log("Handshake performed", Name);
+	log("Handshake performed, awaiting authentication verification", Name);
 
 	if(Settings.bDebug)
 	{
 		DebugJson = new class'JsonObject';
-		DebugJson.AddString("State", "HandshakePerformed");
+		DebugJson.AddString("State", "AwaitingAuthentication");
 		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
 	}
+
+	SendAuthenticationRequest();
 }
 
 state Authenticated
