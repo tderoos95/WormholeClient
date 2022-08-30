@@ -4,14 +4,14 @@ var WormholeConnection WormholeConnection;
 
 // Invasion events
 const WaveCountdownStarted = "match/invasion/wavecountdownstarted";
-const WaveStarted = "match/invasion/wavestarted";
+const WaveStarted          = "match/invasion/wavestarted";
 
 // Bunker Building events
-const BuildTimeExpired = "match/bunkerbuilding/buildtimeexpired";
+const BuildTimeExpired     = "match/bunkerbuilding/buildtimeexpired";
 
 function ProcessEvent(string Topic, JsonObject EventData)
 {
-    WormholeConnection.Send(Topic, EventData);
+    WormholeConnection.SendEventData(Topic, EventData);
 }
 
 defaultproperties

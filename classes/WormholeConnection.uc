@@ -58,16 +58,22 @@ function SetConnection(string Server, int Port)
 
 function Connect();
 
-function Send(string Topic, JsonObject EventData)
+function SendEventData(string Topic, JsonObject EventData)
 {
-    local string Data;
 	local JsonObject Json;
 
 	Json = new class'JsonObject';
 	Json.AddString("Topic", Topic);
 	Json.AddJson("Data", EventData);
 
-    Data = Json.ToString();
+	SendJson(Json);
+}
+
+function SendJson(JsonObject Json)
+{
+	local string Data;
+
+	Data = Json.ToString();
     Data $= EndOfMessageChar;
 
 	if(Settings.bDebug)
@@ -155,6 +161,9 @@ state AwaitingHandshake
 	{
 		local JsonObject Json;
 
+		if(Settings.bDebug)
+			log("Received raw text: " $ Message, Name);
+
 		if(class'JsonConvert'.static.EndsWith(Message, EndOfMessageChar))
 			Message = Left(Message, Len(Message) - 1);
 
@@ -164,7 +173,12 @@ state AwaitingHandshake
 
 	function SendHandshakeRequest()
 	{
+		local JsonObject Json;
 
+		Json = new class'JsonObject';
+		Json.AddString("protocol", "json");
+		Json.AddInt("version", 1);
+		SendJson(Json);
 	}
 	
 Begin:
@@ -188,7 +202,7 @@ state HandshakePerformed
 
 		Json = new class'JsonObject';
 		Json.AddString("Token", Settings.Token);
-		Send("authentication/request", Json);
+		SendEventData("authentication/request", Json);
 	}
 
 begin:
