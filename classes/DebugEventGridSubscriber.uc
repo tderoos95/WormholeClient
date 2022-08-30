@@ -6,6 +6,7 @@ const Disconnected  = "wormhole/debug/disconnected";
 const Failed        = "wormhole/debug/failed";
 const Resolving     = "wormhole/debug/resolving";
 const Resolved      = "wormhole/debug/resolved";
+const ResolveFailed = "wormhole/debug/resolvefailed";
 const StateChanged  = "wormhole/debug/statechanged";
 const ReceivedText  = "wormhole/debug/receivedtext";
 const SendText      = "wormhole/debug/sendtext";
@@ -36,13 +37,14 @@ function ProcessEvent(string Topic, JsonObject EventData)
 
 defaultproperties
 {
-    SubscriptionTopics(0)="wormhole/debug/instantiated" // Instantiated
-    SubscriptionTopics(1)="wormhole/debug/connected"    // Connected
-    SubscriptionTopics(2)="wormhole/debug/disconnected" // Disconnected
-    SubscriptionTopics(3)="wormhole/debug/failed"       // Failed
-    SubscriptionTopics(4)="wormhole/debug/resolving"    // Resolving
-    SubscriptionTopics(5)="wormhole/debug/resolved"     // Resolved
-    SubscriptionTopics(6)="wormhole/debug/statechanged" // StateChanged
-    SubscriptionTopics(7)="wormhole/debug/receivedtext" // ReceivedText
-    SubscriptionTopics(8)="wormhole/debug/sendtext"     // SendText
+    SubscriptionTopics(0)="wormhole/debug/instantiated"  // Instantiated
+    SubscriptionTopics(1)="wormhole/debug/connected"     // Connected
+    SubscriptionTopics(2)="wormhole/debug/disconnected"  // Disconnected
+    SubscriptionTopics(3)="wormhole/debug/failed"        // Failed
+    SubscriptionTopics(4)="wormhole/debug/resolving"     // Resolving
+    SubscriptionTopics(5)="wormhole/debug/resolved"      // Resolved
+    SubscriptionTopics(6)="wormhole/debug/resolvefailed" // ResolveFailed
+    SubscriptionTopics(7)="wormhole/debug/statechanged"  // StateChanged
+    SubscriptionTopics(8)="wormhole/debug/receivedtext"  // ReceivedText
+    SubscriptionTopics(9)="wormhole/debug/sendtext"      // SendText
 }

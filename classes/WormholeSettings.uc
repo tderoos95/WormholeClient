@@ -1,6 +1,7 @@
 class WormholeSettings extends Object
     config(Wormhole);
 
+var globalconfig bool bDebug;
 var globalconfig bool bAutoReconnect;
 var globalconfig float ReconnectDelay;
 var globalconfig float ConnectTimeout;
