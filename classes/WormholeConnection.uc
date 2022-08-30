@@ -41,6 +41,13 @@ function SpawnSubscribers()
 	EventGrid = GametypeEventGridSubscriber.GetOrCreateEventGrid();
 }
 
+
+function SendDebugDataToEventGrid(string Topic, JsonObject Json)
+{
+	if(Settings.bDebug)
+		EventGrid.SendEvent(Topic, Json);
+}
+
 function SetConnection(string Server, int Port)
 {
 	ServerHostName		= Server;
@@ -48,7 +55,6 @@ function SetConnection(string Server, int Port)
 	
 	Connect();
 }
-
 
 function Connect();
 
@@ -64,12 +70,22 @@ function Send(string Topic, JsonObject EventData)
     Data = Json.ToString();
     Data $= EndOfMessageChar;
 
-	DebugJson = new class'JsonObject';
-	DebugJson.AddString("Data", Data);
-	EventGrid.SendEvent("wormhole/debug/sendtext", DebugJson);
+	if(Settings.bDebug)
+	{
+		DebugJson = new class'JsonObject';
+		DebugJson.AddString("Data", Data);
+		SendDebugDataToEventGrid("wormhole/debug/sendtext", DebugJson);
+	}
 
     SendText(Data);
 }
+
+event Closed()
+{
+	SendDebugDataToEventGrid("wormhole/debug/disconnected", None);
+	GotoState('NotConnected');
+}
+
 
 auto state NotConnected
 {
@@ -86,25 +102,22 @@ auto state NotConnected
 				log("Attempting to connect to discord bot", Name);
 				Open(ServerAddress);
 			}
-			
-			//OnTimeout = Connect;
-			//SetTimeout(ConnectTimeout);
 		}
 		else if(ServerHostName != "" && ServerAddress.Port > 0)
 		{
-			EventGrid.SendEvent("wormhole/debug/resolving", None);
+			SendDebugDataToEventGrid("wormhole/debug/resolving", None);
 			Resolve(ServerHostName);
 		}
 		else
 		{
-			EventGrid.SendEvent("wormhole/debug/failed", None);
+			SendDebugDataToEventGrid("wormhole/debug/failed", None);
 			log("ERROR - Missing server address or port.", Name);
 		}
 	}
 	
 	event Resolved(IpAddr Address)
 	{
-		EventGrid.SendEvent("wormhole/debug/resolved", None); // debug
+		SendDebugDataToEventGrid("wormhole/debug/resolved", None);
 
 		if(Address.Addr != 0)
 		{
@@ -117,69 +130,58 @@ auto state NotConnected
 	
 	event ResolveFailed()
 	{
+		SendDebugDataToEventGrid("wormhole/debug/resolvefailed", None);
 		log("ERROR - Could not resolve server address.", Name);
 	}
 	
 	event Opened()
 	{
-		EventGrid.SendEvent("wormhole/debug/connected", None); // debug
-
-		// ClearTimeout();
-		GotoState('ConnectionEstablished');
+		SendDebugDataToEventGrid("wormhole/debug/connected", None);
+		GotoState('AwaitingHandshake');
 	}
 	
-	// function Timer()
-	// {
-		// OnTimeout();
-	// }
-	
-// Reconnect:
-	// log("Waiting before reconnecting", Name);
-	// ServerAddress.Addr = 0;
-
 begin:
-	DebugJson = new class'JsonObject';
-	DebugJson.AddString("State", "NotConnected");
-	EventGrid.SendEvent("wormhole/debug/statechanged", DebugJson);
-	// OnTimeout = Connect;
-	// SetTimeout(ReconnectDelay);
+	if(Settings.bDebug)
+	{
+		DebugJson = new class'JsonObject';
+		DebugJson.AddString("State", "NotConnected");
+		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
+	}
 }
 
-state ConnectionEstablished
+state AwaitingHandshake
 {
 	event ReceivedText(string Message)
 	{
 		local JsonObject Json;
 
+		if(class'JsonConvert'.static.EndsWith(Message, EndOfMessageChar))
+			Message = Left(Message, Len(Message) - 1);
+
 		Json = class'JsonConvert'.static.Deserialize(Message);
-		EventGrid.SendEvent("wormhole/debug/receivedtext", Json);
-		// local int Code;
-		// local string Data;
-		
-		// DissectMessage(Message, Code, Data);
-		
-		// Switch(Code)
-		// {
-		// 	case AuthenticationOK:
-		// 		GotoState('Authenticated');
-		// 		break;
-		
-		// 	case AccessDenied:
-		// 		log("Access denied by server, make sure the IP is whitelisted in the Server settings", Name);
-		// 		break;
-	
-		// 	default:
-		// 		log("Unknown code received:" @ Code);
-		// 		break;
-		// }
-	}
-	
-	event Closed()
-	{
-		EventGrid.SendEvent("wormhole/debug/disconnected", None); // debug
-		GotoState('NotConnected');
+		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
 	}
 
+	function SendHandshakeRequest()
+	{
+
+	}
+	
+Begin:
+	log("Connection established", Name);
+
+	if(Settings.bDebug)
+	{
+		DebugJson = new class'JsonObject';
+		DebugJson.AddString("State", "AwaitingHandshake");
+		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
+	}
+
+	SendHandshakeRequest();
+}
+
+state HandshakePerformed
+{
 	function SendAuthenticationRequest()
 	{
 		local JsonObject Json;
@@ -189,38 +191,22 @@ state ConnectionEstablished
 		Send("authentication/request", Json);
 	}
 
-Begin:
-	log("Connection established", Name);	
-	DebugJson = new class'JsonObject';
-	DebugJson.AddString("State", "ConnectionEstablished");
-	EventGrid.SendEvent("wormhole/debug/statechanged", DebugJson);	
+begin:
+	log("Handshake performed", Name);
 
-	SendAuthenticationRequest();
+	if(Settings.bDebug)
+	{
+		DebugJson = new class'JsonObject';
+		DebugJson.AddString("State", "HandshakePerformed");
+		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
+	}
 }
 
 state Authenticated
 {
 	event ReceivedText(string Message)
 	{
-		// local int Code;
-		// local string Data;
-		
-		// DissectMessage(Message, Code, Data);
-		
-		// Switch(Code)
-		// {
-		// 	case DiscordMessage:
-		// 		WormholeMutator.OnDiscordChat(Data);
-		// 		break;
-			
-		// 	case DiscordCommand:
-		// 		ExecuteCommand(Data);
-		// 		break;
-				
-		// 	default:
-		// 		log("Unknown code received:" @ Code);
-		// 		break;
-		// }
+
 	}
 	
 	event Closed()
@@ -230,10 +216,13 @@ state Authenticated
 	
 Begin:
 	log("Succesfully authenticated by server", Name);
-	DebugJson = new class'JsonObject';
-	DebugJson.AddString("State", "Authenticated");
-	EventGrid.SendEvent("wormhole/debug/statechanged", DebugJson);	
-	//SendServerDetails();
+
+	if(Settings.bDebug)
+	{
+		DebugJson = new class'JsonObject';
+		DebugJson.AddString("State", "Authenticated");
+		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
+	}
 }
 
 
