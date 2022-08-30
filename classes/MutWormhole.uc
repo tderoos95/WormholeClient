@@ -47,7 +47,7 @@ function Mutate(string Command, PlayerController PC)
         PC.ClientMessage("Connecting to " $ GivenIp $ ":" $ Settings.Port);
         Connection.SetConnection(GivenIp, Settings.Port);
     }
-}
+} 
 
 function Timer()
 {
