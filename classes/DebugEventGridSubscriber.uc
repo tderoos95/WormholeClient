@@ -1,15 +1,15 @@
 class DebugEventGridSubscriber extends EventGridSubscriber;
 
-const Instantiated  = "wormhole/debug/instantiated";
-const Connected     = "wormhole/debug/connected";
-const Disconnected  = "wormhole/debug/disconnected";
-const Failed        = "wormhole/debug/failed";
-const Resolving     = "wormhole/debug/resolving";
-const Resolved      = "wormhole/debug/resolved";
-const ResolveFailed = "wormhole/debug/resolvefailed";
-const StateChanged  = "wormhole/debug/statechanged";
-const ReceivedText  = "wormhole/debug/receivedtext";
-const SendText      = "wormhole/debug/sendtext";
+const Instantiated    = "wormhole/debug/instantiated";
+const Connected       = "wormhole/debug/connected";
+const Disconnected    = "wormhole/debug/disconnected";
+const Failed          = "wormhole/debug/failed";
+const Resolving       = "wormhole/debug/resolving";
+const Resolved        = "wormhole/debug/resolved";
+const ResolveFailed   = "wormhole/debug/resolvefailed";
+const StateChanged    = "wormhole/debug/statechanged";
+const ReceivedText    = "wormhole/debug/receivedtext";
+const SendText        = "wormhole/debug/sendtext";
 
 var PlayerController PC;
 
@@ -46,5 +46,5 @@ defaultproperties
     SubscriptionTopics(6)="wormhole/debug/resolvefailed" // ResolveFailed
     SubscriptionTopics(7)="wormhole/debug/statechanged"  // StateChanged
     SubscriptionTopics(8)="wormhole/debug/receivedtext"  // ReceivedText
-    SubscriptionTopics(9)="wormhole/debug/sendtext"      // SendText
+    SubscriptionTopics(9)="wormhole/debug/sendtext"     // SendText
 }

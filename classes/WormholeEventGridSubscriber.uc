@@ -21,7 +21,7 @@ const PlayerLeveledUp    = "player/rpg/leveledup";
 
 function ProcessEvent(string Topic, JsonObject EventData)
 {
-    WormholeConnection.Send(Topic, EventData);
+    WormholeConnection.SendEventData(Topic, EventData);
 }
 
 defaultproperties
