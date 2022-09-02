@@ -135,6 +135,16 @@ function UnwrapIncomingJson(JsonObject Json)
 	Json.RemoveArrayValue("arguments");
 }
 
+function ForwardToEventGrid(JsonObject Json)
+{
+	local string Target;
+
+	Target = Json.GetString("Target");
+
+	if(Len(Target) > 0)
+		EventGrid.SendEvent(Target, Json);
+}
+
 event Closed()
 {
 	SendDebugDataToEventGrid("wormhole/debug/disconnected", None);
@@ -262,14 +272,11 @@ state AwaitingAuthentication // HandshakePerformed
 	{
 		local JsonObject Json;
 		
-		if(Settings.bDebug)
-			log("Received raw text: " $ Message, Name);
-		
 		Json = DeserializeJson(Message);
 		UnwrapIncomingJson(Json);
+		ForwardToEventGrid(Json);
 
-		Json.LogValues('Wormhole');
-
+		// Send debug data
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
 	}
 
