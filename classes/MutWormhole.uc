@@ -5,6 +5,7 @@ class MutWormhole extends Mutator
 var WormholeSettings Settings;
 var WormholeConnection Connection;
 var ChatSpectator ChatSpectator;
+var TimerController TimerController;
 
 // debug
 var DebugEventGridSubscriber DebugSubscriber;
@@ -19,6 +20,7 @@ function PostBeginPlay()
 	SaveConfig();
 
     Connection = Spawn(class'WormholeConnection', self);
+    TimerController = Spawn(class'TimerController', self);
 }
 
 function Mutate(string Command, PlayerController PC)
