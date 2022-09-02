@@ -11,9 +11,9 @@ var IpAddr ServerAddress;
 var bool bConnected;
 
 // EventGrid subscribers
-var WormholeEventGridSubscriber ProcessingEventGridSubscriber;
+var RemoteProcessingEventGridSubscriber RemoteProcessingEventGridSubscriber;
 var GametypeEventGridSubscriber GametypeEventGridSubscriber;
-var IncomingDataEventGridSubscriber IncomingDataEventGridSubscriber;
+var ConnectionEventGridSubscriber ConnectionEventGridSubscriber;
 
 // EventGrid for debugging purposes
 var EventGrid EventGrid;
@@ -37,9 +37,9 @@ function LoadSettings()
 
 function SpawnSubscribers()
 {
-	ProcessingEventGridSubscriber = Spawn(class'ProcessingEventGridSubscriber', self);
+	RemoteProcessingEventGridSubscriber = Spawn(class'RemoteProcessingEventGridSubscriber', self);
 	GametypeEventGridSubscriber = Spawn(class'GametypeEventGridSubscriber', self);
-	IncomingDataEventGridSubscriber = Spawn(class'IncomingDataEventGridSubscriber', self);
+	ConnectionEventGridSubscriber = Spawn(class'ConnectionEventGridSubscriber', self);
 	EventGrid = GametypeEventGridSubscriber.GetOrCreateEventGrid();
 }
 
