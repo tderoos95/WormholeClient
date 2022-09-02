@@ -1,6 +1,4 @@
-class GameTypeEventGridSubscriber extends EventGridSubscriber;
-
-var WormholeConnection WormholeConnection;
+class GameTypeEventGridSubscriber extends WormholeEventGridSubscriber;
 
 // Invasion events
 const WaveCountdownStarted = "match/invasion/wavecountdownstarted";

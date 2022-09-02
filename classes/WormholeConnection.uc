@@ -11,8 +11,9 @@ var IpAddr ServerAddress;
 var bool bConnected;
 
 // EventGrid subscribers
-var WormholeEventGridSubscriber WormholeEventGridSubscriber;
+var WormholeEventGridSubscriber ProcessingEventGridSubscriber;
 var GametypeEventGridSubscriber GametypeEventGridSubscriber;
+var IncomingDataEventGridSubscriber IncomingDataEventGridSubscriber;
 
 // EventGrid for debugging purposes
 var EventGrid EventGrid;
@@ -36,8 +37,9 @@ function LoadSettings()
 
 function SpawnSubscribers()
 {
-	WormholeEventGridSubscriber = Spawn(class'WormholeEventGridSubscriber');
-	GametypeEventGridSubscriber = Spawn(class'GametypeEventGridSubscriber');
+	ProcessingEventGridSubscriber = Spawn(class'ProcessingEventGridSubscriber', self);
+	GametypeEventGridSubscriber = Spawn(class'GametypeEventGridSubscriber', self);
+	IncomingDataEventGridSubscriber = Spawn(class'IncomingDataEventGridSubscriber', self);
 	EventGrid = GametypeEventGridSubscriber.GetOrCreateEventGrid();
 }
 
@@ -274,10 +276,8 @@ state AwaitingAuthentication // HandshakePerformed
 		
 		Json = DeserializeJson(Message);
 		UnwrapIncomingJson(Json);
-		ForwardToEventGrid(Json);
-
-		// Send debug data
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
+		ForwardToEventGrid(Json);
 	}
 
 begin:
@@ -297,7 +297,12 @@ state Authenticated
 {
 	event ReceivedText(string Message)
 	{
-
+		local JsonObject Json;
+		
+		Json = DeserializeJson(Message);
+		UnwrapIncomingJson(Json);
+		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
+		ForwardToEventGrid(Json);
 	}
 	
 	event Closed()
