@@ -1,13 +1,13 @@
 class ConnectionEventGridSubscriber extends WormholeEventGridSubscriber;
 
-// Connection events
+// Connection topics
 const AuthenticationResponse   = "wormhole/authentication/response";
 const ConnectionAttempt        = "wormhole/connection/attempt";
 const ConnectionFailed         = "wormhole/connection/failed";
 const ConnectionEstablished    = "wormhole/connection/established";
 const ConnectionLost           = "wormhole/connection/lost";
 
-// Timer elapse events
+// Timer elapse topics
 const ConnectionTimeOutElapsed = "wormhole/connection/timeout/elapsed";
 const ReconnectElapsed         = "wormhole/connection/reconnect/elapsed";
 
@@ -69,8 +69,8 @@ function ProcessConnectionFailed()
 
 function ProcessConnectionEstablished()
 {
-    TimerController.DestroyTimer("wormhole/connection/timeout");
-    TimerController.DestroyTimer("wormhole/connection/reconnect");
+    TimerController.DestroyTimer(ConnectionTimeOutElapsed);
+    TimerController.DestroyTimer(ReconnectElapsed);
 }
 
 function ProcessConnectionLost()
@@ -83,8 +83,8 @@ function ProcessTimeoutElapsed()
     if(WormholeConnection.IsInState('Connected'))
         return;
     
-    WormholeConnection.GotoState('NotConnected');
     log("Connection timed out, disconnecting...", 'Wormhole');
+    WormholeConnection.GotoState('NotConnected');
 
     // todo set reconnect timer
 }
