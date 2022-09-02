@@ -102,6 +102,39 @@ function SendJson(JsonObject Json)
     SendText(Data);
 }
 
+function JsonObject DeserializeJson(string Message)
+{
+	if(class'JsonConvert'.static.EndsWith(Message, EndOfMessageChar))
+		Message = Left(Message, Len(Message) - 1);
+
+	return class'JsonConvert'.static.Deserialize(Message);
+}
+
+function UnwrapIncomingJson(JsonObject Json)
+{
+	// Wormhole: * type: 1
+	// Wormhole: * target: "wormhole/authentication/response"
+	// Wormhole: arguments:
+	// Wormhole: * {"success":false}
+	local array<string> Arguments;
+	local int Type;
+
+	Type = Json.GetInt("type");
+
+	if(Type != 1)
+		return;
+
+	Arguments = Json.GetArrayValue("arguments");
+
+	if(Arguments.length == 0)
+		return;
+	
+	class'JsonConvert'.static.DeserializeIntoExistingObject(Json, Arguments[0]);
+
+	Json.RemoveValue("type");
+	Json.RemoveArrayValue("arguments");
+}
+
 event Closed()
 {
 	SendDebugDataToEventGrid("wormhole/debug/disconnected", None);
@@ -180,10 +213,7 @@ state AwaitingHandshake
 		if(Settings.bDebug)
 			log("Received raw text: " $ Message, Name);
 
-		if(class'JsonConvert'.static.EndsWith(Message, EndOfMessageChar))
-			Message = Left(Message, Len(Message) - 1);
-
-		Json = class'JsonConvert'.static.Deserialize(Message);
+		Json = DeserializeJson(Message);
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
 
 		if(Len(Json.GetString("error")) == 0)
@@ -224,7 +254,7 @@ state AwaitingAuthentication // HandshakePerformed
 
 		Json = new class'JsonObject';
 		Json.AddString("Token", Settings.Token);
-		Json.AddString("GameServerName", "Unreal Universe");
+		Json.AddString("GameServerName", "Unreal Universe"); // todo
 		SendEventData("authentication/request", Json);
 	}
 
@@ -235,10 +265,11 @@ state AwaitingAuthentication // HandshakePerformed
 		if(Settings.bDebug)
 			log("Received raw text: " $ Message, Name);
 		
-		if(class'JsonConvert'.static.EndsWith(Message, EndOfMessageChar))
-			Message = Left(Message, Len(Message) - 1);
-		
-		Json = class'JsonConvert'.static.Deserialize(Message);
+		Json = DeserializeJson(Message);
+		UnwrapIncomingJson(Json);
+
+		Json.LogValues('Wormhole');
+
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
 	}
 

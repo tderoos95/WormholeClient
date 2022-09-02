@@ -46,5 +46,5 @@ defaultproperties
     SubscriptionTopics(6)="wormhole/debug/resolvefailed" // ResolveFailed
     SubscriptionTopics(7)="wormhole/debug/statechanged"  // StateChanged
     SubscriptionTopics(8)="wormhole/debug/receivedtext"  // ReceivedText
-    SubscriptionTopics(9)="wormhole/debug/sendtext"     // SendText
+    SubscriptionTopics(9)="wormhole/debug/sendtext"      // SendText
 }
