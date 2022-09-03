@@ -11,7 +11,7 @@ const ConnectionLost           = "wormhole/connection/lost";
 const ConnectionTimeOutTimer = "wormhole/connection/timer/timeout";
 const ReconnectTimer         = "wormhole/connection/timer/reconnect";
 
-var TimerController TimerController; 
+var EventGridTimerController TimerController; 
 var WormholeSettings Settings;
 
 function PreBeginPlay()

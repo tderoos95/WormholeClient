@@ -1,21 +1,31 @@
 class RemoteProcessingEventGridSubscriber extends WormholeEventGridSubscriber;
 
+// It is by no means necessary to write all of these events down,
+// however, it creates a good overview of which events are being sent.
+
 // Match events
-const MatchInfo          = "match/info";
-const MatchStarted       = "match/started";
-const MatchEnded         = "match/ended";
-const MapSwitch          = "match/mapswitch";
+const MatchInfo            = "match/info";
+const MatchStarted         = "match/started";
+const MatchEnded           = "match/ended";
+const MapSwitch            = "match/mapswitch";
+
+// Invasion events
+const WaveCountdownStarted = "match/invasion/wavecountdownstarted";
+const WaveStarted          = "match/invasion/wavestarted";
+
+// Bunker Building events
+const BuildTimeExpired     = "match/bunkerbuilding/buildtimeexpired";
 
 // Player events
-const PlayerConnecting   = "player/connecting";
-const PlayerConnected    = "player/connected";
-const PlayerDisconnected = "player/disconnected";
-const PlayerChat         = "player/chat";
-const PlayerKilled       = "player/killed";
-const PlayerResurrected  = "player/resurrected";
+const PlayerConnecting     = "player/connecting";
+const PlayerConnected      = "player/connected";
+const PlayerDisconnected   = "player/disconnected";
+const PlayerChat           = "player/chat";
+const PlayerKilled         = "player/killed";
+const PlayerResurrected    = "player/resurrected";
 
 // RPG Events
-const PlayerLeveledUp    = "player/rpg/leveledup";
+const PlayerLeveledUp      = "player/rpg/leveledup";
 
 function ProcessEvent(string Topic, JsonObject EventData)
 {
@@ -24,17 +34,6 @@ function ProcessEvent(string Topic, JsonObject EventData)
 
 defaultproperties
 {
-    SubscriptionTopics(0)="match/info"             // MatchInfo
-    SubscriptionTopics(1)="match/started"          // MatchStarted
-    SubscriptionTopics(2)="match/ended"            // MatchEnded
-    SubscriptionTopics(3)="match/mapswitch"        // MapSwitch
-
-    SubscriptionTopics(4)="player/connecting"      // PlayerConnecting
-    SubscriptionTopics(5)="player/connected"       // PlayerConnected
-    SubscriptionTopics(6)="player/disconnected"    // PlayerDisconnected
-    SubscriptionTopics(7)="player/chat"            // PlayerChat
-    SubscriptionTopics(8)="player/killed"          // PlayerKilled
-    SubscriptionTopics(9)="player/resurrected"     // PlayerResurrected
-
-    SubscriptionTopics(10)="player/rpg/leveledup"  // PlayerLeveledUp
+    SubscriptionTopics(0)="match/"     // All match related events
+    SubscriptionTopics(1)="player/"    // All player related events
 }

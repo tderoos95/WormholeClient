@@ -1,4 +1,5 @@
-class TimerController extends Info;
+// Todo outsource to EventGrid library
+class EventGridTimerController extends Info;
 
 struct TimerEntry {
     var string CallbackTopic;
@@ -10,13 +11,11 @@ struct TimerEntry {
 var array<TimerEntry> ActiveTimers;
 var float NextTimerElapse;
 var EventGrid EventGrid;
-var WormholeSettings Settings;
 
 function PreBeginPlay()
 {
     Super.PreBeginPlay();
     EventGrid = MutWormhole(Owner).EventGrid;
-    Settings = MutWormhole(Owner).Settings;
 
     SetTimer(0.1, true);
 }
