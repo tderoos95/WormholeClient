@@ -55,6 +55,7 @@ function SetConnection(string Server, int Port)
 }
 
 function Connect();
+function Reconnect();
 
 function SendEventData(string Topic, JsonObject EventData)
 {
@@ -145,10 +146,10 @@ function ForwardToEventGrid(JsonObject Json)
 
 event Closed()
 {
+	EventGrid.SendEvent("wormhole/connection/lost", None);
 	SendDebugDataToEventGrid("wormhole/debug/disconnected", None);
 	GotoState('NotConnected');
 }
-
 
 auto state NotConnected
 {
@@ -158,11 +159,13 @@ auto state NotConnected
 		{
 			if(BindPort() == 0)
 			{
-				log("ERROR - Can't bind port for bot connection.", Name);
+				EventGrid.SendEvent("wormhole/connection/failed", None);
+				log("ERROR - Can't bind port for wormhole connection.", Name);
 			}
 			else
 			{
-				log("Attempting to connect to discord bot", Name);
+				log("Attempting to connect to wormhole remote server...", Name);
+				EventGrid.SendEvent("wormhole/connection/attempt", None);
 				Open(ServerAddress);
 			}
 		}
@@ -174,8 +177,17 @@ auto state NotConnected
 		else
 		{
 			SendDebugDataToEventGrid("wormhole/debug/failed", None);
+			EventGrid.SendEvent("wormhole/connection/attempt/failed", None);
 			log("ERROR - Missing server address or port.", Name);
 		}
+	}
+
+	function Reconnect()
+	{
+		log("Attempting to connect to wormhole remote server...", Name);
+		EventGrid.SendEvent("wormhole/connection/attempt", None);
+		Close();
+		Open(ServerAddress);
 	}
 	
 	event Resolved(IpAddr Address)
@@ -199,6 +211,7 @@ auto state NotConnected
 	
 	event Opened()
 	{
+		EventGrid.SendEvent("wormhole/connection/established", None);
 		SendDebugDataToEventGrid("wormhole/debug/connected", None);
 		GotoState('AwaitingHandshake');
 	}
@@ -299,11 +312,6 @@ state Authenticated
 		UnwrapIncomingJson(Json);
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
 		ForwardToEventGrid(Json);
-	}
-	
-	event Closed()
-	{
-		GotoState('NotConnected');
 	}
 	
 Begin:

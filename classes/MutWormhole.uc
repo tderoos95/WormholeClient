@@ -11,6 +11,7 @@ var EventGridTimerController TimerController;
 var DebugEventGridSubscriber DebugSubscriber;
 var EventGrid EventGrid;
 
+
 function PreBeginPlay()
 {
     Super.PreBeginPlay();
@@ -20,7 +21,6 @@ function PreBeginPlay()
 	SaveConfig();
 
     EventGrid = GetOrCreateEventGrid();
-    Connection = Spawn(class'WormholeConnection', self);
     TimerController = Spawn(class'EventGridTimerController', self);
 }
 
@@ -61,7 +61,7 @@ function Mutate(string Command, PlayerController PC)
     else if(Command ~= "Connect")
     {
         PC.ClientMessage("Connecting to " $ Settings.HostName $ ":" $ Settings.Port);
-        Connection.SetConnection(Settings.HostName, Settings.Port);
+        CreateConnection();
     }
     else if(StartsWith(Command, "ConnectTo"))
     {
@@ -102,6 +102,14 @@ function Mutate(string Command, PlayerController PC)
         }
     }
 } 
+
+function WormholeConnection CreateConnection()
+{
+    Connection.Destroy();
+    Connection = Spawn(class'WormholeConnection', self);
+    Connection.SetConnection(Settings.HostName, Settings.Port);
+    return Connection;
+}
 
 function Timer()
 {
