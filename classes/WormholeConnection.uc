@@ -1,6 +1,6 @@
 class WormholeConnection extends TcpLink;
 
-const EndOfMessageChar   = ""; // "\\u001e"; // "";
+const EndOfMessageChar   = "";
 const EndOfMessageString = "\\r\\n";
 
 var MutWormhole WormholeMutator;
@@ -22,11 +22,17 @@ var JsonObject DebugJson;
 // Delegates
 delegate OnTimeout();
 
+function PreBeginPlay()
+{
+	Super.PreBeginPlay();
+	LoadSettings();
+	SpawnSubscribers();
+}
+
 event PostBeginPlay()
 {
 	Super.PostBeginPlay();
-	LoadSettings();
-	SpawnSubscribers();
+	
 }
 
 function LoadSettings()
