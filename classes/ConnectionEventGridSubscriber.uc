@@ -45,12 +45,24 @@ function ProcessAuthenticationResponse(JsonObject Json)
     {
         WormholeConnection.GotoState('Authenticated');
         log("Authentication successful", 'Wormhole');
+        OnAuthenticationSuccesful();
     }
     else
     {
         WormholeConnection.GotoState('NotConnected');
         log("Authentication failed, disconnecting...", 'Wormhole');
     }
+}
+
+function OnAuthenticationSuccesful()
+{
+    local JsonObject Json;
+
+    Json = new class'JsonObject';
+    Json.AddString("Game", Level.Game.GameName);
+    Json.AddString("MapName", Level.Title);
+    Json.AddString("ServerName", class'Utils'.static.StripColorCodes(Level.Game.GameReplicationInfo.ServerName));
+    EventGrid.SendEvent("match/info", Json);
 }
 
 function OnConnectionAttempt()
