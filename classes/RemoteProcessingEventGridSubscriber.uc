@@ -1,4 +1,4 @@
-class ProcessingEventGridSubscriber extends WormholeEventGridSubscriber;
+class RemoteProcessingEventGridSubscriber extends WormholeEventGridSubscriber;
 
 // Match events
 const MatchInfo          = "match/info";

@@ -37,14 +37,6 @@ function ProcessEvent(string Topic, JsonObject EventData)
 
 defaultproperties
 {
-    SubscriptionTopics(0)="wormhole/debug/instantiated"  // Instantiated
-    SubscriptionTopics(1)="wormhole/debug/connected"     // Connected
-    SubscriptionTopics(2)="wormhole/debug/disconnected"  // Disconnected
-    SubscriptionTopics(3)="wormhole/debug/failed"        // Failed
-    SubscriptionTopics(4)="wormhole/debug/resolving"     // Resolving
-    SubscriptionTopics(5)="wormhole/debug/resolved"      // Resolved
-    SubscriptionTopics(6)="wormhole/debug/resolvefailed" // ResolveFailed
-    SubscriptionTopics(7)="wormhole/debug/statechanged"  // StateChanged
-    SubscriptionTopics(8)="wormhole/debug/receivedtext"  // ReceivedText
-    SubscriptionTopics(9)="wormhole/debug/sendtext"      // SendText
+    SubscriptionTopics(0)="wormhole/debug/"  // Wildcard for all debug topics
+    SubscriptionTopics(1)="wormhole/test/timer/"
 }
