@@ -131,11 +131,29 @@ function bool StartsWith(string String, string Prefix)
     return Left(String, Len(Prefix)) ~= Prefix;
 }
 
+// Match starts
 function MatchStarting()
 {
     EventGrid.SendEvent("wormhole/match/started", None);
 }
 
+// Player disconneceted
+function NotifyLogout(Controller Exiting)
+{
+	local PlayerController PC;
+    local JsonObject Json;
+
+	Super.NotifyLogout(Exiting);
+	PC = PlayerController(Exiting);
+	
+	if(PC != None)
+	{
+        Json = new class'JsonObject';
+        Json.AddString("PlayerId", PC.GetPlayerIdHash());
+        Json.AddString("PlayerName", PC.PlayerReplicationInfo.PlayerName);
+        EventGrid.SendEvent("player/disconnected", Json);
+	}
+}
 
 defaultproperties
 {
