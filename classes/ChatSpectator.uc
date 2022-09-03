@@ -2,13 +2,17 @@ class ChatSpectator extends MessagingSpectator;
 
 var MutWormhole WormholeMutator;
 var string SpectatorName;
+var EventGrid EventGrid;
 
-event PostBeginPlay()
+event PreBeginPlay()
 {
-	Super.PostBeginPlay();
+	Super.PreBeginPlay();
 	
 	WormholeMutator = MutWormhole(Owner);
+	EventGrid = WormholeMutator.EventGrid;
 	SpectatorName = WormholeMutator.Settings.ChatSpectatorName;
+
+	EventGrid.SendEvent("wormhole/chatspectator/chatspecator_name_" $ SpectatorName, None);
 	PlayerReplicationInfo.PlayerName = SpectatorName;
 }
 
@@ -20,10 +24,16 @@ function InitPlayerReplicationInfo()
 
 function TeamMessage(PlayerReplicationInfo PRI, coerce string Message, name Type)
 {
+	local JsonObject Json;
+
 	if(Type == 'Say' && PRI != None && PRI != PlayerReplicationInfo && WormholeMutator != None)
 	{
-        // todo use event grid
-		//WormholeMutator.OnIngameChat(PRI, Message);
+		Json = new class'JsonObject';
+		Json.AddString("PlayerId", PlayerController(PRI.Owner).GetPlayerIdHash());
+		Json.AddString("PlayerName", PRI.PlayerName);
+		Json.AddString("Message", Message);
+
+		EventGrid.SendEvent("player/chat", Json);
 	}
 }
 
