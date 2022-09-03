@@ -131,6 +131,12 @@ function bool StartsWith(string String, string Prefix)
     return Left(String, Len(Prefix)) ~= Prefix;
 }
 
+function MatchStarting()
+{
+    EventGrid.SendEvent("wormhole/match/started", None);
+}
+
+
 defaultproperties
 {
     FriendlyName="Wormhole"
