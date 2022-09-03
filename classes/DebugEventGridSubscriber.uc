@@ -38,4 +38,5 @@ function ProcessEvent(string Topic, JsonObject EventData)
 defaultproperties
 {
     SubscriptionTopics(0)="wormhole/debug/"  // Wildcard for all debug topics
+    SubscriptionTopics(1)="wormhole/test/timer/"
 }

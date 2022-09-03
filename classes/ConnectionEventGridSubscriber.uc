@@ -8,10 +8,9 @@ const ConnectionEstablished    = "wormhole/connection/established";
 const ConnectionLost           = "wormhole/connection/lost";
 
 // Timer elapse topics
-const ConnectionTimeOutElapsed = "wormhole/connection/timeout/elapsed";
-const ReconnectElapsed         = "wormhole/connection/reconnect/elapsed";
+const ConnectionTimeOutTimer = "wormhole/connection/timer/timeout";
+const ReconnectTimer         = "wormhole/connection/timer/reconnect";
 
-// This is about as close we can get to DI in UScript
 var TimerController TimerController; 
 var WormholeSettings Settings;
 
@@ -27,17 +26,17 @@ function ProcessEvent(string Topic, JsonObject Json)
     if(Topic ~= AuthenticationResponse)
         ProcessAuthenticationResponse(Json);
     else if(Topic ~= ConnectionAttempt)
-        ProcessConnectionAttempt();
+        OnConnectionAttempt();
     else if(Topic ~= ConnectionFailed)
-        ProcessConnectionFailed();
+        OnConnectionFailed();
     else if(Topic ~= ConnectionEstablished)
-        ProcessConnectionEstablished();
+        OnConnectionEstablished();
     else if(Topic ~= ConnectionLost)
-        ProcessConnectionLost();
-    else if(Topic ~= ConnectionTimeOutElapsed)
-        ProcessTimeoutElapsed();
-    else if(Topic ~= ReconnectElapsed)
-        ProcessReconnectTimerElapsed();
+        OnConnectionLost();
+    else if(Topic ~= ConnectionTimeOutTimer)
+        OnTimeoutElapsed();
+    else if(Topic ~= ReconnectTimer)
+        OnReconnectTimerElapsed();
 }
 
 function ProcessAuthenticationResponse(JsonObject Json)
@@ -57,28 +56,28 @@ function ProcessAuthenticationResponse(JsonObject Json)
     }
 }
 
-function ProcessConnectionAttempt()
+function OnConnectionAttempt()
 {
-    TimerController.CreateTimer(ConnectionTimeOutElapsed, Settings.ConnectTimeout);
+    TimerController.CreateTimer(ConnectionTimeOutTimer, Settings.ConnectTimeout);
 }
 
-function ProcessConnectionFailed()
+function OnConnectionFailed()
 {
-    TimerController.CreateTimer(ReconnectElapsed, Settings.ReconnectInterval);
+    TimerController.CreateTimer(ReconnectTimer, Settings.ReconnectInterval);
 }
 
-function ProcessConnectionEstablished()
+function OnConnectionEstablished()
 {
-    TimerController.DestroyTimer(ConnectionTimeOutElapsed);
-    TimerController.DestroyTimer(ReconnectElapsed);
+    TimerController.DestroyTimer(ConnectionTimeOutTimer);
+    TimerController.DestroyTimer(ReconnectTimer);
 }
 
-function ProcessConnectionLost()
+function OnConnectionLost()
 {
-    TimerController.CreateTimer(ReconnectElapsed, Settings.ReconnectInterval);
+    TimerController.CreateTimer(ReconnectTimer, Settings.ReconnectInterval);
 }
 
-function ProcessTimeoutElapsed()
+function OnTimeoutElapsed()
 {
     if(WormholeConnection.IsInState('Connected'))
         return;
@@ -89,7 +88,7 @@ function ProcessTimeoutElapsed()
     // todo set reconnect timer
 }
 
-function ProcessReconnectTimerElapsed()
+function OnReconnectTimerElapsed()
 {
     if(WormholeConnection.IsInState('Connected'))
         return;
