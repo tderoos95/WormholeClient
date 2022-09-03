@@ -3,20 +3,19 @@ class ConnectionEventGridSubscriber extends WormholeEventGridSubscriber;
 // Connection topics
 const AuthenticationResponse   = "wormhole/authentication/response";
 const ConnectionAttempt        = "wormhole/connection/attempt";
-const ConnectionFailed         = "wormhole/connection/failed";
 const ConnectionEstablished    = "wormhole/connection/established";
 const ConnectionLost           = "wormhole/connection/lost";
 
 // Timer elapse topics
-const ConnectionTimeOutTimer = "wormhole/connection/timer/timeout";
-const ReconnectTimer         = "wormhole/connection/timer/reconnect";
+const ConnectionTimeOutTimer   = "wormhole/connection/timer/timeout";
+const ReconnectTimer           = "wormhole/connection/timer/reconnect";
 
 var EventGridTimerController TimerController; 
 var WormholeSettings Settings;
 
-function PreBeginPlay()
+function PostBeginPlay()
 {
-    Super.PreBeginPlay();
+    Super.PostBeginPlay();
     TimerController = WormholeConnection.WormholeMutator.TimerController;
     Settings = WormholeConnection.WormholeMutator.Settings;
 }
@@ -27,8 +26,6 @@ function ProcessEvent(string Topic, JsonObject Json)
         ProcessAuthenticationResponse(Json);
     else if(Topic ~= ConnectionAttempt)
         OnConnectionAttempt();
-    else if(Topic ~= ConnectionFailed)
-        OnConnectionFailed();
     else if(Topic ~= ConnectionEstablished)
         OnConnectionEstablished();
     else if(Topic ~= ConnectionLost)
@@ -58,12 +55,8 @@ function ProcessAuthenticationResponse(JsonObject Json)
 
 function OnConnectionAttempt()
 {
-    TimerController.CreateTimer(ConnectionTimeOutTimer, Settings.ConnectTimeout);
-}
-
-function OnConnectionFailed()
-{
-    TimerController.CreateTimer(ReconnectTimer, Settings.ReconnectInterval);
+    if(Settings.ConnectTimeout > 0)
+        TimerController.CreateTimer(ConnectionTimeOutTimer, Settings.ConnectTimeout);
 }
 
 function OnConnectionEstablished()
@@ -74,29 +67,30 @@ function OnConnectionEstablished()
 
 function OnConnectionLost()
 {
-    TimerController.CreateTimer(ReconnectTimer, Settings.ReconnectInterval);
+    log("Connection to wormhole remote server lost", 'Wormhole');
+
+    if(Settings.bAutoReconnect)
+    {
+        log("Attempting to reconnect in " $ Settings.ReconnectInterval $ " seconds", 'Wormhole');
+        TimerController.CreateTimer(ReconnectTimer, Settings.ReconnectInterval);
+    }
 }
 
 function OnTimeoutElapsed()
 {
-    if(WormholeConnection.IsInState('Connected'))
-        return;
-    
-    log("Connection timed out, disconnecting...", 'Wormhole');
-    WormholeConnection.GotoState('NotConnected');
+    log("Connection to wormhole remote server timed out.", 'Wormhole');
 
-    // todo set reconnect timer
+    if(Settings.bAutoReconnect)
+    {
+        log("Attempting to reconnect in " $ Settings.ReconnectInterval $ " seconds", 'Wormhole');
+        TimerController.CreateTimer(ReconnectTimer, Settings.ReconnectInterval);
+    }
 }
 
 function OnReconnectTimerElapsed()
 {
-    if(WormholeConnection.IsInState('Connected'))
-        return;
-    
-    WormholeConnection.GotoState('NotConnected');
-    log("Reconnecting...", 'Wormhole');
-    
-    // todo connect
+    log("Attempting to reconnect...", 'Wormhole');
+    WormholeConnection.Reconnect();
 }
 
 defaultproperties
