@@ -1,6 +1,6 @@
 class WormholeConnection extends TcpLink;
 
-const EndOfMessageChar   = ""; // "\\u001e"; // "";
+const EndOfMessageChar   = "";
 const EndOfMessageString = "\\r\\n";
 
 var MutWormhole WormholeMutator;
@@ -11,9 +11,9 @@ var IpAddr ServerAddress;
 var bool bConnected;
 
 // EventGrid subscribers
-var WormholeEventGridSubscriber ProcessingEventGridSubscriber;
+var RemoteProcessingEventGridSubscriber RemoteProcessingEventGridSubscriber;
 var GametypeEventGridSubscriber GametypeEventGridSubscriber;
-var IncomingDataEventGridSubscriber IncomingDataEventGridSubscriber;
+var ConnectionEventGridSubscriber ConnectionEventGridSubscriber;
 
 // EventGrid for debugging purposes
 var EventGrid EventGrid;
@@ -22,11 +22,17 @@ var JsonObject DebugJson;
 // Delegates
 delegate OnTimeout();
 
+function PreBeginPlay()
+{
+	Super.PreBeginPlay();
+	LoadSettings();
+	SpawnSubscribers();
+}
+
 event PostBeginPlay()
 {
 	Super.PostBeginPlay();
-	LoadSettings();
-	SpawnSubscribers();
+	
 }
 
 function LoadSettings()
@@ -37,9 +43,9 @@ function LoadSettings()
 
 function SpawnSubscribers()
 {
-	ProcessingEventGridSubscriber = Spawn(class'ProcessingEventGridSubscriber', self);
+	RemoteProcessingEventGridSubscriber = Spawn(class'RemoteProcessingEventGridSubscriber', self);
 	GametypeEventGridSubscriber = Spawn(class'GametypeEventGridSubscriber', self);
-	IncomingDataEventGridSubscriber = Spawn(class'IncomingDataEventGridSubscriber', self);
+	ConnectionEventGridSubscriber = Spawn(class'ConnectionEventGridSubscriber', self);
 	EventGrid = GametypeEventGridSubscriber.GetOrCreateEventGrid();
 }
 
