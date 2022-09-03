@@ -11,21 +11,42 @@ var TimerController TimerController;
 var DebugEventGridSubscriber DebugSubscriber;
 var EventGrid EventGrid;
 
-function PostBeginPlay()
+function PreBeginPlay()
 {
-    Super.PostBeginPlay();
+    Super.PreBeginPlay();
 
     Settings = new class'WormholeSettings';
     Settings.SaveConfig();
 	SaveConfig();
 
+    EventGrid = GetOrCreateEventGrid();
     Connection = Spawn(class'WormholeConnection', self);
     TimerController = Spawn(class'TimerController', self);
+}
+
+function EventGrid GetOrCreateEventGrid()
+{
+    local bool bFound;
+
+    foreach AllActors(class'EventGrid', EventGrid)
+    {
+        bFound = true;
+        break;
+    }
+    
+    if(!bFound)
+    {
+        log("EventGrid not found, creating one");
+        EventGrid = Spawn(class'EventGrid');
+    }
+    
+    return EventGrid;
 }
 
 function Mutate(string Command, PlayerController PC)
 {
     local string GivenIp;
+    local int i;
 
     if(NextMutator != None)
         NextMutator.Mutate(Command, PC);
@@ -35,7 +56,6 @@ function Mutate(string Command, PlayerController PC)
         PC.ClientMessage("Instantiating wormhole debug subscriber...");
         DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
         DebugSubscriber.PC = PC;
-        EventGrid = DebugSubscriber.GetOrCreateEventGrid();
         EventGrid.SendEvent("wormhole/debug/instantiated", None);
     }
     else if(Command ~= "Connect")
@@ -48,6 +68,28 @@ function Mutate(string Command, PlayerController PC)
         GivenIp = Mid(Command, Len("ConnectTo") + 1);
         PC.ClientMessage("Connecting to " $ GivenIp $ ":" $ Settings.Port);
         Connection.SetConnection(GivenIp, Settings.Port);
+    }
+    else if(Command ~= "TestTimerOneShot")
+    {
+        TimerController.CreateTimer("wormhole/test/timer/elapsed", 3);
+    }
+    else if(Command ~= "TestTimer")
+    {
+        TimerController.CreateTimer("wormhole/test/timer/elapsed", 3, true);
+    }
+    else if(Command ~= "RemoveTestTimer")
+    {
+        TimerController.DestroyTimer("wormhole/test/timer/elapsed");
+    }
+    else if(Command ~= "DebugTimer")
+    {
+        PC.ClientMessage("Current time: " $ Level.TimeSeconds);
+        PC.ClientMessage("Next elapse: " $ TimerController.NextTimerElapse);
+
+        for(i = 0; i < TimerController.ActiveTimers.length; i++)
+        {
+            PC.ClientMessage(TimerController.ActiveTimers[i].CallbackTopic $ " elapses at " $ TimerController.ActiveTimers[i].ElapsesAt);
+        }
     }
 } 
 
