@@ -5,7 +5,7 @@ class MutWormhole extends Mutator
 var WormholeSettings Settings;
 var WormholeConnection Connection;
 var ChatSpectator ChatSpectator;
-var TimerController TimerController;
+var EventGridTimerController TimerController;
 
 // debug
 var DebugEventGridSubscriber DebugSubscriber;
@@ -21,7 +21,7 @@ function PreBeginPlay()
 
     EventGrid = GetOrCreateEventGrid();
     Connection = Spawn(class'WormholeConnection', self);
-    TimerController = Spawn(class'TimerController', self);
+    TimerController = Spawn(class'EventGridTimerController', self);
 }
 
 function EventGrid GetOrCreateEventGrid()
