@@ -22,6 +22,7 @@ function PreBeginPlay()
 
     EventGrid = GetOrCreateEventGrid();
     TimerController = Spawn(class'EventGridTimerController', self);
+    ChatSpectator = Spawn(class'ChatSpectator', self);
 }
 
 function EventGrid GetOrCreateEventGrid()
