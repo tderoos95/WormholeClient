@@ -69,17 +69,27 @@ function Mutate(string Command, PlayerController PC)
         PC.ClientMessage("Connecting to " $ GivenIp $ ":" $ Settings.Port);
         Connection.SetConnection(GivenIp, Settings.Port);
     }
+    else if(Command ~= "TestTimerMultiple")
+    {
+        TimerController.CreateTimer("wormhole/test/timer/1", 9);
+        TimerController.CreateTimer("wormhole/test/timer/2", 6, true);
+        TimerController.CreateTimer("wormhole/test/timer/3", 3);
+        PC.ClientMessage("Test timers created");
+    }
+    else if(Command ~= "DestroyTimer")
+    {
+        TimerController.DestroyTimer("wormhole/test/timer/2");
+        PC.ClientMessage("Destroyed timer");
+    }
     else if(Command ~= "TestTimerOneShot")
     {
         TimerController.CreateTimer("wormhole/test/timer/elapsed", 3);
+        PC.ClientMessage("Created timer");
     }
     else if(Command ~= "TestTimer")
     {
-        TimerController.CreateTimer("wormhole/test/timer/elapsed", 3, true);
-    }
-    else if(Command ~= "RemoveTestTimer")
-    {
-        TimerController.DestroyTimer("wormhole/test/timer/elapsed");
+        TimerController.CreateTimer("wormhole/test/timer/elapsed", 1, true);
+        PC.ClientMessage("Created timer");
     }
     else if(Command ~= "DebugTimer")
     {

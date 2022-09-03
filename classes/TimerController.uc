@@ -5,7 +5,6 @@ struct TimerEntry {
     var int Interval;
     var bool bRepeat;
     var float ElapsesAt;
-    var bool bHandled;
 };
 
 var array<TimerEntry> ActiveTimers;
@@ -19,7 +18,7 @@ function PreBeginPlay()
     EventGrid = MutWormhole(Owner).EventGrid;
     Settings = MutWormhole(Owner).Settings;
 
-    SetTimer(1, true);
+    SetTimer(0.1, true);
 }
 
 function CreateTimer(string CallbackTopic, int Interval, optional bool bRepeat)
@@ -36,7 +35,8 @@ function CreateTimer(string CallbackTopic, int Interval, optional bool bRepeat)
     ActiveTimers[NewIndex].Interval = Interval;
     ActiveTimers[NewIndex].bRepeat = bRepeat;
     ActiveTimers[NewIndex].ElapsesAt = Level.TimeSeconds + Interval;
-    CalculateNextTimerElapse();
+
+    NextTimerElapse = GetSoonestTimerElapse();
 }
 
 function DestroyTimer(string CallbackTopic)
@@ -52,7 +52,7 @@ function DestroyTimer(string CallbackTopic)
         }
     }
 
-    CalculateNextTimerElapse();
+    NextTimerElapse = GetSoonestTimerElapse();
 }
 
 function bool TimerExists(string CallbackTopic)
@@ -81,60 +81,41 @@ function OnTimerElapsed()
 
     for(i = 0; i < ActiveTimers.length; i++)
     {
-        if(ActiveTimers[i].ElapsesAt <= Level.TimeSeconds && !ActiveTimers[i].bHandled)
+        if(ActiveTimers[i].ElapsesAt <= Level.TimeSeconds)
         {
-            ActiveTimers[i].bHandled = true;
-            PerformCallback(ActiveTimers[i].CallbackTopic);
+            Callback(ActiveTimers[i].CallbackTopic);
 
             if(ActiveTimers[i].bRepeat)
-            {
                 ActiveTimers[i].ElapsesAt = Level.TimeSeconds + ActiveTimers[i].Interval;
-                ActiveTimers[i].bHandled = false;
-            }
             else
-            {
                 ActiveTimers.Remove(i, 1);
-            }
         }
     }
 
-    CalculateNextTimerElapse();
+    NextTimerElapse = GetSoonestTimerElapse();
 }
 
-
-function CalculateNextTimerElapse()
+function Callback(string CallbackTopic)
 {
-    local int i, NearestElapse;
-
-    if(ActiveTimers.length == 0)
-    {
-        NextTimerElapse = 0;
-        SendDebugDataToEventGrid("wormhole/debug/timer/nonextelapse_" $ NextTimerElapse, None);
-        return;
-    }
-
-    NearestElapse = ActiveTimers[0].ElapsesAt;
-
-    for (i = 0; i < ActiveTimers.length; i++)
-    {
-        if(ActiveTimers[i].ElapsesAt < NearestElapse)
-            NearestElapse = ActiveTimers[i].ElapsesAt;
-    }
-
-    NextTimerElapse = NearestElapse;
-    //SendDebugDataToEventGrid("wormhole/debug/timer/nextelapse_at_" $ string(NextTimerElapse), None);
-}
-
-function PerformCallback(string CallbackTopic)
-{
-    log("Timer '" $ CallbackTopic $ "' elapsed", 'WormholeTimerController');
-    SendDebugDataToEventGrid("wormhole/debug/timer/elapsed/_" $ CallbackTopic, None);
-
     EventGrid.SendEvent(CallbackTopic, None);
 }
 
-function SendDebugDataToEventGrid(string Topic, JsonObject Json)
+function float GetSoonestTimerElapse()
 {
-	if(Settings.bDebug)
-		EventGrid.SendEvent(Topic, Json);
+    local float SoonestElapse;
+    local int i;
+
+    if(ActiveTimers.length == 0)
+        return 0;
+
+    SoonestElapse = ActiveTimers[0].ElapsesAt;
+
+    for (i = 1; i < ActiveTimers.length; i++)
+    {
+        // Try to find timer that ends sooner than the current soonest
+        if(ActiveTimers[i].ElapsesAt < SoonestElapse)
+            SoonestElapse = ActiveTimers[i].ElapsesAt;
+    }
+
+    return SoonestElapse;
 }
