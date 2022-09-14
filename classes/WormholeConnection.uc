@@ -276,7 +276,7 @@ state AwaitingAuthentication // HandshakePerformed
 		Json = new class'JsonObject';
 		Json.AddString("Token", Settings.Token);
 		Json.AddString("GameServerName", "Unreal Universe"); // todo
-		SendEventData("authentication/request", Json);
+		SendEventData("wormhole/authentication/request", Json);
 	}
 
 	function ReceivedText(string Message)
