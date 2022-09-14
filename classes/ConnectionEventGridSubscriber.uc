@@ -45,7 +45,7 @@ function ProcessAuthenticationResponse(JsonObject Json)
     {
         WormholeConnection.GotoState('Authenticated');
         log("Authentication successful", 'Wormhole');
-        OnAuthenticationSuccesful();
+        OnAuthenticationSuccessful();
     }
     else
     {
@@ -54,7 +54,7 @@ function ProcessAuthenticationResponse(JsonObject Json)
     }
 }
 
-function OnAuthenticationSuccesful()
+function OnAuthenticationSuccessful()
 {
     local JsonObject Json;
 
