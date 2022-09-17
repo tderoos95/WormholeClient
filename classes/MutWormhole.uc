@@ -2,10 +2,13 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
+const DEBUG = true;
+
 var WormholeSettings Settings;
 var WormholeConnection Connection;
 var ChatSpectator ChatSpectator;
 var EventGridTimerController TimerController;
+var WormholeGameRules GameRules;
 
 // debug
 var DebugEventGridSubscriber DebugSubscriber;
@@ -23,6 +26,10 @@ function PreBeginPlay()
     EventGrid = GetOrCreateEventGrid();
     TimerController = Spawn(class'EventGridTimerController', self);
     ChatSpectator = Spawn(class'ChatSpectator', self);
+
+    // Add game rules
+    GameRules = Spawn(class'WormholeGameRules', self);
+    Level.Game.AddGameModifier(GameRules);
 }
 
 function EventGrid GetOrCreateEventGrid()
@@ -52,6 +59,9 @@ function Mutate(string Command, PlayerController PC)
     if(NextMutator != None)
         NextMutator.Mutate(Command, PC);
     
+    if(!DEBUG)
+        return;
+
     if(Command ~= "ToggleDebug")
     {
         PC.ClientMessage("Instantiating wormhole debug subscriber...");
