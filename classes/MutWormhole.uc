@@ -144,7 +144,7 @@ function bool StartsWith(string String, string Prefix)
 // Match starts
 function MatchStarting()
 {
-    EventGrid.SendEvent("wormhole/match/started", None);
+    EventGrid.SendEvent("match/started", None);
 }
 
 // Player disconneceted
