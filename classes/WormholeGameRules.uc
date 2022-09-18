@@ -134,12 +134,17 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
 
     // Send player OUT
 	if (Killed.PlayerReplicationInfo != None && Killed.PlayerReplicationInfo.bOutOfLives)
-	{
-        Json = new class'JsonObject';
-        Json.AddString("PlayerId", Killed.GetPlayerIDHash());
-        Json.AddString("PlayerName", Killed.PlayerReplicationInfo.PlayerName);
-        EventGrid.SendEvent("player/out", Json);
-	}
+		OnPlayerOut(Killed);
+}
+
+function OnPlayerOut(PlayerController Player)
+{
+	local JsonObject Json;
+
+	Json = new class'JsonObject';
+	Json.AddString("PlayerId", Player.GetPlayerIDHash());
+	Json.AddString("PlayerName", Player.PlayerReplicationInfo.PlayerName);
+	EventGrid.SendEvent("player/out", Json);
 }
 
 defaultproperties
