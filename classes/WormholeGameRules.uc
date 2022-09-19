@@ -9,13 +9,11 @@ var string StringSuicideDrowned;
 var string StringSuicideFell;
 var string StringSuicideLava;
 
-struct PendingKill {
+var struct PendingKill {
 	var Controller Killed;
 	var Controller Killer;
 	var class<DamageType> DamagaType;
-};
-
-var array<PendingKill> PendingKills;
+} QueuedKill;
 
 function PreBeginPlay()
 {
@@ -26,59 +24,28 @@ function PreBeginPlay()
 
 function bool PreventDeath(Pawn KilledPawn, Controller Killer, class<DamageType> DamageType, vector HitLocation)
 {
-	// Queue the kill for later processing
-	QueuePendingKill(KilledPawn.Controller, Killer, DamageType);
+	// Queue the kill for later processing, any mutator in the chain can still call it off at this point
+	QueuedKill.Killed = KilledPawn.Controller;
+	QueuedKill.Killer = Killer;
+	QueuedKill.DamagaType = DamageType;
 
 	return Super.PreventDeath(KilledPawn, Killer, DamageType, HitLocation);
 }
 
-function QueuePendingKill(Controller Killed, Controller Killer, class<DamageType> DamageType)
-{
-	local int NewIndex;
-	
-	// Queue the kill for later processing
-	NewIndex = PendingKills.Length;
-	PendingKills.Length = NewIndex + 1;
-
-	PendingKills[NewIndex].Killed = Killed;
-	PendingKills[NewIndex].Killer = Killer;
-	PendingKills[NewIndex].DamagaType = DamageType;
-}
-
-function PendingKill DequeuPendingKill(Controller Killed, Controller Killer)
-{
-	local int i;
-	local PendingKill PendingKill;
-	
-	for (i = 0; i < PendingKills.length; i++)
-	{
-		if (PendingKills[i].Killed == Killed && PendingKills[i].Killer == Killer)
-		{
-			PendingKill = PendingKills[i];
-			PendingKills.Remove(i, 1);
-		}
-	}
-	
-	return PendingKill;
-}
-
 function ScoreKill(Controller Killer, Controller Killed)
 {
-	local PendingKill PendingKill;
-
+	// Now that we are sure the playuer is killed, we can process the kill
+	// (Queueing it first is a workaround to know the DamageType of the kill)
     if (PlayerController(Killed) != None)
 	{
-		PendingKill = DequeuPendingKill(Killed, Killer);
-
-		if(PendingKill.DamagaType != None)
+		if(QueuedKill.DamagaType != None)
 		{
-			OnPlayerKilled(Killer, PlayerController(Killed), PendingKill.DamagaType);
-			PendingKills.Remove(PendingKills.Length - 1, 1);
+			OnPlayerKilled(Killer, PlayerController(Killed), QueuedKill.DamagaType);
 		}
 	}
 
     if (NextGameRules != None)
-		NextGameRules.ScoreKill(Killer,Killed);
+		NextGameRules.ScoreKill(Killer, Killed);
 }
 
 function OnPlayerKilled(Controller Killer, PlayerController Killed, class<DamageType> DamageType)
