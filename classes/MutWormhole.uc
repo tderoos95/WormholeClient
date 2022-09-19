@@ -147,7 +147,7 @@ function MatchStarting()
     EventGrid.SendEvent("match/started", None);
 }
 
-// Player disconneceted
+// Player disconnected
 function NotifyLogout(Controller Exiting)
 {
 	local PlayerController PC;
@@ -163,6 +163,65 @@ function NotifyLogout(Controller Exiting)
         Json.AddString("PlayerName", PC.PlayerReplicationInfo.PlayerName);
         EventGrid.SendEvent("player/disconnected", Json);
 	}
+}
+
+// Map switch
+function ServerTraveling(string URL, bool bItems)
+{
+    ReportTravel(URL);
+
+    if(NextMutator != None)
+        NextMutator.ServerTraveling(URL, bItems);
+}
+
+function ReportTravel(string NextURL)
+{
+    local JsonObject Json;
+	local string NextMap;
+	local string NextGame;
+	local int SeparatorCharacterIndex;
+	
+	local class<GameInfo> NextGameClass;
+	
+	if(NextURL ~= "?restart")
+	{
+		NextMap = string(Outer.Name);
+		NextGame = string(Level.Game.Class);
+	}
+	else
+	{
+		SeparatorCharacterIndex = InStr(NextURL, "?");
+		
+		if(SeparatorCharacterIndex > 0) {
+			NextMap = Left(NextURL, SeparatorCharacterIndex);
+			NextURL = Mid(NextURL, SeparatorCharacterIndex);
+		}
+		else if(SeparatorCharacterIndex == -1 && NextURL != "")
+			NextMap = NextURL;
+		else
+			NextMap = string(Outer.Name);
+		
+		if(Level.Game.HasOption(NextURL, "game"))
+			NextGame = Level.Game.ParseOption(NextURL, "game");
+		else
+			NextGame = string(Level.Game.Class);
+	}
+	
+	if(NextGame ~= string(Level.Game.Class))
+		NextGame = Level.Game.GameName;
+	else
+	{
+		NextGameClass = class<GameInfo>(DynamicLoadObject(NextGame, class'Class'));
+		
+		if(NextGameClass != None)
+			NextGame = NextGameClass.default.GameName;
+		else NextGame = GetItemName(NextGame);
+	}
+
+    Json = new class'JsonObject';
+    Json.AddString("NextGame", NextGame);
+    Json.AddString("NextMap", NextMap);
+    EventGrid.SendEvent("match/mapswitch", Json);
 }
 
 defaultproperties
