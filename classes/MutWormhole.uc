@@ -14,6 +14,20 @@ var WormholeGameRules GameRules;
 var DebugEventGridSubscriber DebugSubscriber;
 var EventGrid EventGrid;
 
+//=============================================================================
+// Tracking variables for reporting
+//=============================================================================
+struct IPlayer {
+    var PlayerController PC;
+    var PlayerReplicationInfo PRI;
+    var bool bIsSpectator;
+    var TeamInfo LastTeam;
+    var string LastName;
+};
+
+var array<IPlayer> Players;
+var bool bGameEnded;
+
 
 function PreBeginPlay()
 {
@@ -30,6 +44,8 @@ function PreBeginPlay()
     // Add game rules
     GameRules = Spawn(class'WormholeGameRules', self);
     Level.Game.AddGameModifier(GameRules);
+    
+    CreateConnection();
 }
 
 function EventGrid GetOrCreateEventGrid()
@@ -67,13 +83,16 @@ function Mutate(string Command, PlayerController PC)
         PC.ClientMessage("Instantiating wormhole debug subscriber...");
         DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
         DebugSubscriber.PC = PC;
+        //
+        SetTimer(0.1, true); // todo: move this to the subscriber
+        //
         EventGrid.SendEvent("wormhole/debug/instantiated", None);
     }
-    else if(Command ~= "Connect")
-    {
-        PC.ClientMessage("Connecting to " $ Settings.HostName $ ":" $ Settings.Port);
-        CreateConnection();
-    }
+    // else if(Command ~= "Connect")
+    // {
+    //     PC.ClientMessage("Connecting to " $ Settings.HostName $ ":" $ Settings.Port);
+    //     CreateConnection();
+    // }
     else if(StartsWith(Command, "ConnectTo"))
     {
         GivenIp = Mid(Command, Len("ConnectTo") + 1);
@@ -116,24 +135,100 @@ function Mutate(string Command, PlayerController PC)
 
 function WormholeConnection CreateConnection()
 {
-    Connection.Destroy();
+    if(Connection != None)
+        Connection.Destroy();
+    
     Connection = Spawn(class'WormholeConnection', self);
     Connection.SetConnection(Settings.HostName, Settings.Port);
     return Connection;
 }
 
+function bool CheckReplacement(Actor Other, out byte bSuperRelevant)
+{
+    if(PlayerController(Other) != None)
+    {
+        Players.Insert(0, 1);
+        Players[0].PC = PlayerController(Other);
+    }
+    return Super.CheckReplacement(Other, bSuperRelevant);
+}
+
 function Timer()
 {
-    // if not connected, try to connect
-    if(!Connection.bConnected)
+    MonitorPlayers();
+    CheckEndGame();
+}
+
+function MonitorPlayers()
+{
+    local int i;
+    local JsonObject Json;
+
+    for(i = 0; i < Players.length; i++)
     {
-        Connection.SetConnection(Settings.HostName, Settings.Port);
+        // Check if player has joined newly
+        if(Players[i].PRI == None)
+        {
+            Json = new class'JsonObject';
+            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
+            Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
+            EventGrid.SendEvent("player/connected", Json);
+
+            Players[i].PRI = Players[i].PC.PlayerReplicationInfo;
+            Players[i].bIsSpectator = Players[i].PRI.bIsSpectator;
+            Players[i].LastTeam = Players[i].PRI.Team;
+            Players[i].LastName = Players[i].PC.GetHumanReadableName();
+            continue;
+        }
+
+        // Check if player has changed name
+        if(Players[i].PRI.PlayerName != Players[i].LastName)
+        {
+            Json = new class'JsonObject';
+            Json.AddString("LastName", Players[i].LastName);
+            Json.AddString("NewName", Players[i].PRI.PlayerName);
+            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
+            EventGrid.SendEvent("player/changedname", Json);
+
+            Players[i].LastName = Players[i].PRI.PlayerName;
+        }
+
+        // Check if player has changed teams
+        if(Players[i].PRI.Team != Players[i].LastTeam)
+        {
+            Json = new class'JsonObject';
+            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
+            Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
+            Json.AddString("Team", Players[i].PRI.Team.TeamName);
+
+            Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
+            EventGrid.SendEvent("player/changedteam", Json);
+
+            Players[i].LastTeam = Players[i].PRI.Team;
+        }
+
+        // Check if player became a spectator
+        if(Players[i].bIsSpectator != Players[i].PRI.bOnlySpectator)
+        {
+            Json = new class'JsonObject';
+            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
+            Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
+            Json.AddString("Team", Players[i].PRI.Team.TeamName);
+            Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
+            EventGrid.SendEvent("player/changedteam", Json);
+
+            Players[i].bIsSpectator = Players[i].PRI.bOnlySpectator;
+        }
     }
-    // else
-    // {
-    //     // if connected, send a heartbeat
-    //     Connection.SendHeartbeat();
-    // }
+}
+
+function CheckEndGame()
+{
+    if(!bGameEnded && Level.Game.bGameEnded)
+    {
+        bGameEnded = true;
+        EventGrid.SendEvent("match/ended", None);
+    }
 }
 
 function bool StartsWith(string String, string Prefix)
