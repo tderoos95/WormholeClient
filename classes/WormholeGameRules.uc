@@ -12,8 +12,10 @@ var string StringSuicideLava;
 var struct PendingKill {
 	var Controller Killed;
 	var Controller Killer;
-	var class<DamageType> DamagaType;
+	var class<DamageType> DamageType;
 } QueuedKill;
+
+var bool bFirstBlood;
 
 function PreBeginPlay()
 {
@@ -27,7 +29,7 @@ function bool PreventDeath(Pawn KilledPawn, Controller Killer, class<DamageType>
 	// Queue the kill for later processing, any mutator in the chain can still call it off at this point
 	QueuedKill.Killed = KilledPawn.Controller;
 	QueuedKill.Killer = Killer;
-	QueuedKill.DamagaType = DamageType;
+	QueuedKill.DamageType = DamageType;
 
 	return Super.PreventDeath(KilledPawn, Killer, DamageType, HitLocation);
 }
@@ -38,9 +40,19 @@ function ScoreKill(Controller Killer, Controller Killed)
 	// (Queueing it first is a workaround to know the DamageType of the kill)
     if (PlayerController(Killed) != None)
 	{
-		if(QueuedKill.DamagaType != None)
+		if(QueuedKill.DamageType != None)
 		{
-			OnPlayerKilled(Killer, PlayerController(Killed), QueuedKill.DamagaType);
+			OnPlayerKilled(Killer, PlayerController(Killed), QueuedKill.DamageType);
+		}
+	}
+
+	// Check whether this is first kill
+	if (PlayerController(Killer) != None)
+	{
+		if (bFirstBlood)
+		{
+			bFirstBlood = false;
+			OnFirstBlood(PlayerController(Killer));
 		}
 	}
 
@@ -114,8 +126,19 @@ function OnPlayerOut(PlayerController Player)
 	EventGrid.SendEvent("player/out", Json);
 }
 
+function OnFirstBlood(PlayerController Killer)
+{
+	local JsonObject Json;
+
+	Json = new class'JsonObject';
+	Json.AddString("PlayerId", Killer.GetPlayerIDHash());
+	Json.AddString("PlayerName", Killer.PlayerReplicationInfo.PlayerName);
+	EventGrid.SendEvent("match/firstblood", Json);
+}
+
 defaultproperties
 {
+	bFirstBlood=true
     PlayerSuicided="%o %s"
     StringSuicide="suicided"
     StringSuicideDrowned="drowned"
