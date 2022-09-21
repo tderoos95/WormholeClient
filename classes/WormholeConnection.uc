@@ -76,7 +76,7 @@ function SendEventData(string Topic, JsonObject EventData)
 	Json = new class'JsonObject';
 	Json.AddString("Topic", Topic);
 	Json.AddJson("Data", EventData);
-	
+
 	Arguments.Length = 1;
 	Arguments[0] = Json;
 	ProcessEventJson.AddArrayJson("arguments", Arguments);
@@ -97,6 +97,9 @@ function SendJson(JsonObject Json)
 		DebugJson.AddString("Data", Data);
 		SendDebugDataToEventGrid("wormhole/debug/sendtext", DebugJson);
 	}
+
+	if(Settings.bDebug)
+		log("Sending: " $ Data, 'Wormhole');
 
     SendText(Data);
 }
