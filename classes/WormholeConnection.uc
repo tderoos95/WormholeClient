@@ -87,6 +87,7 @@ function SendEventData(string Topic, JsonObject EventData)
 function SendJson(JsonObject Json)
 {
 	local string Data;
+	local bool bGarbageCollection;
 
 	Data = Json.ToString();
     Data $= EndOfMessageChar;
@@ -102,6 +103,10 @@ function SendJson(JsonObject Json)
 		log("Sending: " $ Data, 'Wormhole');
 
     SendText(Data);
+
+	bGarbageCollection = !Json.GetBool("manualdisposal");
+	if(bGarbageCollection)
+		Json.Clear();
 }
 
 function JsonObject DeserializeJson(string Message)

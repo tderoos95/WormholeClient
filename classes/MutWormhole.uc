@@ -83,6 +83,7 @@ function Mutate(string Command, PlayerController PC)
         PC.ClientMessage("Instantiating wormhole debug subscriber...");
         DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
         DebugSubscriber.PC = PC;
+        DebugSubscriber.Connection = Connection;
         //
         SetTimer(0.1, true); // todo: move this to the subscriber
         //
@@ -131,7 +132,65 @@ function Mutate(string Command, PlayerController PC)
             PC.ClientMessage(TimerController.ActiveTimers[i].CallbackTopic $ " elapses at " $ TimerController.ActiveTimers[i].ElapsesAt);
         }
     }
-} 
+    else if(StartsWith(Command, "FloodWormhole"))
+    {
+        FloodWormhole(PC, Command);
+    }
+}
+
+function FloodWormhole(PlayerController PC, string Command)
+{
+    local JsonObject Json;
+    local int SpaceIndex;
+    local int Count;
+    local int i;
+    local bool bManualDisposal;
+    local string NextPart;
+
+    SpaceIndex = InStr(Command, " ");
+
+    if(SpaceIndex == -1)
+    {
+        PC.ClientMessage("Usage: FloodWormhole <garbagecollection:bool> <count:int>");
+        return;
+    }
+
+    NextPart = Mid(Command, SpaceIndex + 1);
+    SpaceIndex = InStr(NextPart, " ");
+
+    PC.ClientMessage("Garbage collection: " $ Left(NextPart, SpaceIndex));
+
+    bManualDisposal = !bool(Left(NextPart, SpaceIndex));
+    Count = int(Mid(NextPart, SpaceIndex + 1));
+
+    if(Count <= 0)
+    {
+        PC.ClientMessage("Count must be greater than 0");
+        return;
+    }
+
+    PC.ClientMessage(Eval(bManualDisposal, 
+        "Flooding wormhole without garbage collection. " $ Count $ " messages...",
+        "Flooding wormhole with garbage collection. " $ Count $ " messages..."));
+
+    for(i = 0; i < Count; i++)
+    {
+        Json = new class'JsonObject';
+        Json.AddInt("id", i);
+        Json.AddString("text", "This is a test message");
+        Json.AddFloat("time", Level.TimeSeconds);
+        Json.AddString("type", "chat");
+        Json.AddString("sender", "Test");
+        Json.AddString("team", "Red");
+        Json.AddString("channel", "All");
+        Json.AddString("color", "255,0,0");
+
+        Json.AddBool("manualdisposal", bManualDisposal);
+        EventGrid.SendEvent("wormhole/test/flood", Json);
+    }
+
+    PC.ClientMessage("Flooded wormhole with " $ Count $ " messages");
+}
 
 function WormholeConnection CreateConnection()
 {
