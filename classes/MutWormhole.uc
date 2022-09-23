@@ -185,7 +185,7 @@ function FloodWormhole(PlayerController PC, string Command)
         Json.AddString("channel", "All");
         Json.AddString("color", "255,0,0");
 
-        Json.AddBool("manualdisposal", bManualDisposal);
+        Json.AddBool("Wormhole.ManualDisposal", bManualDisposal);
         EventGrid.SendEvent("wormhole/test/flood", Json);
     }
 

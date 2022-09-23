@@ -17,8 +17,6 @@ var WormholeConnection Connection;
 
 function ProcessEvent(string Topic, JsonObject EventData)
 {
-    local bool bGarbageCollection;
-
     if(Topic == StateChanged)
     {
         PC.ClientMessage("Debug: state changed to " $ EventData.GetString("State"));
@@ -35,7 +33,6 @@ function ProcessEvent(string Topic, JsonObject EventData)
     }
     else if(Topic == TestFlood)
     {
-        bGarbageCollection = !EventData.GetBool("manualdisposal");
         Connection.SendEventData(Topic, EventData);
     }
     else

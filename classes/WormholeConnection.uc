@@ -89,6 +89,10 @@ function SendJson(JsonObject Json)
 	local string Data;
 	local bool bGarbageCollection;
 
+	// Determine if we should prevent garbage collection for this json object
+	bGarbageCollection = !Json.GetBool("Wormhole.ManualDisposal");
+	json.RemoveValue("Wormhole.ManualDisposal");
+
 	Data = Json.ToString();
     Data $= EndOfMessageChar;
 
@@ -104,7 +108,7 @@ function SendJson(JsonObject Json)
 
     SendText(Data);
 
-	bGarbageCollection = !Json.GetBool("manualdisposal");
+	// Garbage collection
 	if(bGarbageCollection)
 		Json.Clear();
 }
@@ -128,6 +132,7 @@ function UnwrapIncomingJson(JsonObject Json)
 
 	Type = Json.GetInt("type");
 
+	// Check if message is relevant for us
 	if(Type != 1)
 		return;
 
