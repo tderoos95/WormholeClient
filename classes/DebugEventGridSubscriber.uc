@@ -10,11 +10,15 @@ const ResolveFailed   = "wormhole/debug/resolvefailed";
 const StateChanged    = "wormhole/debug/statechanged";
 const ReceivedText    = "wormhole/debug/receivedtext";
 const SendText        = "wormhole/debug/sendtext";
+const TestFlood       = "wormhole/test/flood";
 
 var PlayerController PC;
+var WormholeConnection Connection;
 
 function ProcessEvent(string Topic, JsonObject EventData)
 {
+    local bool bGarbageCollection;
+
     if(Topic == StateChanged)
     {
         PC.ClientMessage("Debug: state changed to " $ EventData.GetString("State"));
@@ -28,6 +32,11 @@ function ProcessEvent(string Topic, JsonObject EventData)
     {
         log("Debug: send text: " $ EventData.GetString("Data"));
         PC.ClientMessage("Debug: send text " $ EventData.GetString("Data"));
+    }
+    else if(Topic == TestFlood)
+    {
+        bGarbageCollection = !EventData.GetBool("manualdisposal");
+        Connection.SendEventData(Topic, EventData);
     }
     else
     {
