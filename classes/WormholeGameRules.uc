@@ -46,8 +46,8 @@ function ScoreKill(Controller Killer, Controller Killed)
 		}
 	}
 
-	// Check whether this is first kill
-	if (PlayerController(Killer) != None)
+	// Check whether this is first actual kill
+	if (PlayerController(Killer) != None && Killer != Killed)
 	{
 		if (bFirstBlood)
 		{
@@ -80,7 +80,7 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
 		else
 			DeathMessage = Repl(DeathMessage, "%s", StringSuicide);
 	}
-	else
+	else if(Killer != None)
 	{
 		DeathMessage = DamageType.default.DeathString;
 		
@@ -97,7 +97,7 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
 
 	Json = new class'JsonObject';
     Json.AddString("KilledId", Killed.GetPlayerIDHash());
-    Json.AddString("KilledName", Killer.PlayerReplicationInfo.PlayerName);
+    Json.AddString("KilledName", Killed.PlayerReplicationInfo.PlayerName);
 
 
     KillerPC = PlayerController(Killer);
