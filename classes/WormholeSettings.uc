@@ -12,3 +12,9 @@ var globalconfig int Port;
 var globalconfig string Token;
 
 var globalconfig string ChatSpectatorName;
+var globalconfig array<MutWormhole.GameHandlerRegistration> GameHandlers;
+
+defaultproperties
+{
+    GameHandlers(0)=(GameTypeName="SkaarjPack.Invasion",GameHandler=class'GameHandler_Invasion');
+}

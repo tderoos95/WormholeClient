@@ -4,19 +4,33 @@ class MutWormhole extends Mutator
 
 const DEBUG = true;
 
+//=========================================================
+// Wormhole related variables
+//=========================================================
 var WormholeSettings Settings;
 var WormholeConnection Connection;
 var ChatSpectator ChatSpectator;
 var EventGridTimerController TimerController;
 var WormholeGameRules GameRules;
 
-// debug
+//=========================================================
+// Game handlers
+//=========================================================
+struct GameHandlerRegistration {
+    var string GameTypeName;
+    var class<GameHandler> GameHandler;
+};
+var GameHandler GameHandler;
+
+//=========================================================
+// Event management
+//=========================================================
 var DebugEventGridSubscriber DebugSubscriber;
 var EventGrid EventGrid;
 
-//=============================================================================
+//=========================================================
 // Tracking variables for reporting
-//=============================================================================
+//=========================================================
 struct IPlayer {
     var PlayerController PC;
     var PlayerReplicationInfo PRI;
@@ -45,9 +59,36 @@ function PreBeginPlay()
     // Add game rules
     GameRules = Spawn(class'WormholeGameRules', self);
     Level.Game.AddGameModifier(GameRules);
-    
+
     CreateConnection();
+
+    // Add game handler
+    AddGameHandler(Level.Game.Class);
 }
+
+function AddGameHandler(class<GameInfo> GameType)
+{
+    local string GameTypeName;
+    local int i;
+    
+    GameTypeName = string(GameType);
+    log("Adding game handler for " $ GameTypeName $ "...", 'Wormhole');
+
+    for (i = 0; i < Settings.GameHandlers.length; i++)
+    {
+        if (Settings.GameHandlers[i].GameTypeName == GameTypeName)
+        {
+            log("Found game handler '" $ string(Settings.GameHandlers[i].GameHandler.Class) $ "' for " $ GameTypeName $ "!");
+            GameHandler = Spawn(Settings.GameHandlers[i].GameHandler, self);
+            GameHandler.EventGrid = EventGrid;
+            return;
+        }
+    }
+
+    log("No game handler found for " $ GameTypeName $ ", adding default GameHandler", 'Wormhole');
+    GameHandler = Spawn(class'GameHandler', self);
+    GameHandler.EventGrid = EventGrid;
+} 
 
 function EventGrid GetOrCreateEventGrid()
 {
@@ -86,7 +127,7 @@ function Mutate(string Command, PlayerController PC)
         DebugSubscriber.DebuggerPC = PC;
         DebugSubscriber.Connection = Connection;
         //
-        StartMonitoringPlayers(); // todo: move this to the connection eventgrid subscriber
+        StartMonitoringGame(); // todo: move this to the connection eventgrid subscriber
         //
         EventGrid.SendEvent("wormhole/debug/instantiated", None);
     }
@@ -213,7 +254,7 @@ function bool CheckReplacement(Actor Other, out byte bSuperRelevant)
     return Super.CheckReplacement(Other, bSuperRelevant);
 }
 
-function StartMonitoringPlayers()
+function StartMonitoringGame()
 {
     SetTimer(0.1, true);
 }
@@ -221,7 +262,9 @@ function StartMonitoringPlayers()
 function Timer()
 {
     MonitorPlayers();
-    CheckEndGame();
+
+    if(GameHandler != None)
+        GameHandler.MonitorGame();
 }
 
 function MonitorPlayers()
@@ -274,15 +317,6 @@ function MonitorPlayers()
             EventGrid.SendEvent("player/changedteam", Json);
             Players[i].LastTeam = Players[i].PRI.Team;
         }
-    }
-}
-
-function CheckEndGame()
-{
-    if(!bGameEnded && Level.Game.bGameEnded)
-    {
-        bGameEnded = true;
-        EventGrid.SendEvent("match/ended", None);
     }
 }
 
@@ -373,7 +407,8 @@ function ReportTravel(string NextURL)
 	{
 		SeparatorCharacterIndex = InStr(NextURL, "?");
 		
-		if(SeparatorCharacterIndex > 0) {
+		if(SeparatorCharacterIndex > 0)
+        {
 			NextMap = Left(NextURL, SeparatorCharacterIndex);
 			NextURL = Mid(NextURL, SeparatorCharacterIndex);
 		}
