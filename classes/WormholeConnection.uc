@@ -103,8 +103,10 @@ function SendJson(JsonObject Json)
 		SendDebugDataToEventGrid("wormhole/debug/sendtext", DebugJson);
 	}
 
-	if(Settings.bDebug)
+	if(Settings.bDebugDataFlow)
+	{
 		log("Sending: " $ Data, 'Wormhole');
+	}
 
     SendText(Data);
 
@@ -244,8 +246,10 @@ state AwaitingHandshake
 	{
 		local JsonObject Json;
 
-		if(Settings.bDebug)
+		if(Settings.bDebugDataFlow)
+		{
 			log("Received raw text: " $ Message, Name);
+		}
 
 		Json = DeserializeJson(Message);
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);

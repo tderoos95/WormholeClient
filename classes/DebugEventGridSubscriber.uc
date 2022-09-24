@@ -12,24 +12,24 @@ const ReceivedText    = "wormhole/debug/receivedtext";
 const SendText        = "wormhole/debug/sendtext";
 const TestFlood       = "wormhole/test/flood";
 
-var PlayerController PC;
+var PlayerController DebuggerPC;
 var WormholeConnection Connection;
 
 function ProcessEvent(string Topic, JsonObject EventData)
 {
     if(Topic == StateChanged)
     {
-        PC.ClientMessage("Debug: state changed to " $ EventData.GetString("State"));
+        PrintDebug("Debug: state changed to " $ EventData.GetString("State"));
     }
     else if(Topic == ReceivedText)
     {
         log("Debug: received text: " $ EventData.ToString());
-        PC.ClientMessage("Debug: received text " $ EventData.ToString());
+        PrintDebug("Debug: received text " $ EventData.ToString());
     }
     else if(Topic == SendText)
     {
         log("Debug: send text: " $ EventData.GetString("Data"));
-        PC.ClientMessage("Debug: send text " $ EventData.GetString("Data"));
+        PrintDebug("Debug: send text " $ EventData.GetString("Data"));
     }
     else if(Topic == TestFlood)
     {
@@ -37,7 +37,21 @@ function ProcessEvent(string Topic, JsonObject EventData)
     }
     else
     {
-        PC.ClientMessage("Debug: " $ Topic);
+        PrintDebug("Debug: " $ Topic);
+    }
+}
+
+function PrintDebug(string Message)
+{
+    local PlayerController PC;
+    local Controller C;
+
+    for(C = Level.ControllerList; PlayerController(C) != None; C = C.NextController)
+    {
+        PC = PlayerController(C);
+
+        if(PC.PlayerReplicationInfo.bAdmin || PC == DebuggerPC)
+            PC.ClientMessage(Message);
     }
 }
 

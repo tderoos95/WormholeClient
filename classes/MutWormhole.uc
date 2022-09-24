@@ -82,10 +82,10 @@ function Mutate(string Command, PlayerController PC)
     {
         PC.ClientMessage("Instantiating wormhole debug subscriber...");
         DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
-        DebugSubscriber.PC = PC;
+        DebugSubscriber.DebuggerPC = PC;
         DebugSubscriber.Connection = Connection;
         //
-        SetTimer(0.1, true); // todo: move this to the subscriber
+        StartMonitoringPlayers(); // todo: move this to the connection eventgrid subscriber
         //
         EventGrid.SendEvent("wormhole/debug/instantiated", None);
     }
@@ -212,6 +212,11 @@ function bool CheckReplacement(Actor Other, out byte bSuperRelevant)
     return Super.CheckReplacement(Other, bSuperRelevant);
 }
 
+function StartMonitoringPlayers()
+{
+    SetTimer(0.1, true);
+}
+
 function Timer()
 {
     MonitorPlayers();
@@ -225,6 +230,9 @@ function MonitorPlayers()
 
     for(i = 0; i < Players.length; i++)
     {
+        if(Players[i].PC == None)
+            continue; // Removal of Player is handled in NotifyLogout
+
         // Check if player has joined newly
         if(Players[i].PRI == None)
         {
@@ -252,31 +260,17 @@ function MonitorPlayers()
             Players[i].LastName = Players[i].PRI.PlayerName;
         }
 
-        // Check if player has changed teams
+        // Check if player has changed teams or became a spectator
         if(Players[i].PRI.Team != Players[i].LastTeam)
         {
             Json = new class'JsonObject';
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
             Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
-            Json.AddString("Team", Players[i].PRI.Team.TeamName);
-
+            Json.AddInt("Team", Players[i].PRI.Team.TeamIndex);
             Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
-            EventGrid.SendEvent("player/changedteam", Json);
 
+            EventGrid.SendEvent("player/changedteam", Json);
             Players[i].LastTeam = Players[i].PRI.Team;
-        }
-
-        // Check if player became a spectator
-        if(Players[i].bIsSpectator != Players[i].PRI.bOnlySpectator)
-        {
-            Json = new class'JsonObject';
-            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
-            Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
-            Json.AddString("Team", Players[i].PRI.Team.TeamName);
-            Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
-            EventGrid.SendEvent("player/changedteam", Json);
-
-            Players[i].bIsSpectator = Players[i].PRI.bOnlySpectator;
         }
     }
 }
@@ -310,13 +304,28 @@ function NotifyLogout(Controller Exiting)
 	Super.NotifyLogout(Exiting);
 	PC = PlayerController(Exiting);
 	
-	if(PC != None)
-	{
-        Json = new class'JsonObject';
-        Json.AddString("PlayerId", PC.GetPlayerIdHash());
-        Json.AddString("PlayerName", PC.PlayerReplicationInfo.PlayerName);
-        EventGrid.SendEvent("player/disconnected", Json);
-	}
+	if(PC == None)
+        return; // not a player
+
+    Json = new class'JsonObject';
+    Json.AddString("PlayerId", PC.GetPlayerIdHash());
+    Json.AddString("PlayerName", PC.PlayerReplicationInfo.PlayerName);
+    EventGrid.SendEvent("player/disconnected", Json);
+    RemovePlayer(PC);
+}
+
+function RemovePlayer(PlayerController PC)
+{
+    local int i;
+
+    for(i = 0; i < Players.length; i++)
+    {
+        if(Players[i].PC == PC)
+        {
+            Players.Remove(i, 1);
+            break;
+        }
+    }
 }
 
 // Map switch
