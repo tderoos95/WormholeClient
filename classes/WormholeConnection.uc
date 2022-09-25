@@ -131,6 +131,7 @@ function UnwrapIncomingJson(JsonObject Json)
 	// Wormhole: * {"success":false}
 	local array<string> Arguments;
 	local int Type;
+	local int i;
 
 	Type = Json.GetInt("type");
 
@@ -142,8 +143,10 @@ function UnwrapIncomingJson(JsonObject Json)
 
 	if(Arguments.length == 0)
 		return;
-	
-	class'JsonConvert'.static.DeserializeIntoExistingObject(Json, Arguments[0]);
+
+	// Deserialize nested values into root json object
+	for(i = 0; i < Arguments.length; i++)
+		class'JsonConvert'.static.DeserializeIntoExistingObject(Json, Arguments[i]);
 
 	Json.RemoveValue("type");
 	Json.RemoveArrayValue("arguments");
@@ -300,6 +303,11 @@ state AwaitingAuthentication // HandshakePerformed
 	{
 		local JsonObject Json;
 		
+		if(Settings.bDebugDataFlow)
+		{
+			log("Received raw text: " $ Message, Name);
+		}
+
 		Json = DeserializeJson(Message);
 		UnwrapIncomingJson(Json);
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
@@ -324,6 +332,11 @@ state Authenticated
 	event ReceivedText(string Message)
 	{
 		local JsonObject Json;
+
+		if(Settings.bDebugDataFlow)
+		{
+			log("Received raw text: " $ Message, Name);
+		}
 		
 		Json = DeserializeJson(Message);
 		UnwrapIncomingJson(Json);
