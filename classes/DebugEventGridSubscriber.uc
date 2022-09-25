@@ -59,4 +59,5 @@ defaultproperties
 {
     SubscriptionTopics(0)="wormhole/"  // Wildcard for all wormhole topics
     SubscriptionTopics(1)="player/"  // Wildcard for all wormhole topics
+    SubscriptionTopics(2)="discord/"
 }
