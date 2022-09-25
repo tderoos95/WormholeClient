@@ -1,6 +1,7 @@
 class GameHandler extends Info;
 
 var EventGrid EventGrid;
+var bool bGameStarted;
 var bool bGameEnded;
 
 // Called every 0.1 seconds by WormholeMutator

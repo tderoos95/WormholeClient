@@ -26,6 +26,7 @@ var GameHandler GameHandler;
 // Event management
 //=========================================================
 var DebugEventGridSubscriber DebugSubscriber;
+var MutWormholeEventGridSubscriber MutatorEventGridSubscriber;
 var EventGrid EventGrid;
 
 //=========================================================
@@ -52,7 +53,8 @@ function PreBeginPlay()
     Settings.SaveConfig();
 	SaveConfig();
 
-    EventGrid = GetOrCreateEventGrid();
+    MutatorEventGridSubscriber = Spawn(class'MutWormholeEventGridSubscriber', self);
+    EventGrid = MutatorEventGridSubscriber.GetOrCreateEventGrid();
     TimerController = Spawn(class'EventGridTimerController', self);
     ChatSpectator = Spawn(class'ChatSpectator', self);
 
@@ -329,6 +331,9 @@ function bool StartsWith(string String, string Prefix)
 function MatchStarting()
 {
     EventGrid.SendEvent("match/started", None);
+
+    if(GameHandler != None)
+        GameHandler.bGameStarted = true;
 }
 
 // Player disconnected

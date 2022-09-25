@@ -20,12 +20,12 @@ function ProcessEvent(string Topic, JsonObject EventData)
 // Forward chat from discord to UT2004
 function OnDiscordChat(JsonObject EventData)
 {
-    local string Author;
+    local string Username;
     local string Message;
 
-    Author = EventData.GetString("username");
+    Username = EventData.GetString("username");
     Message = EventData.GetString("message");
-    ChatSpectator.ServerSay(Author $ ":" @ Message);
+    ChatSpectator.ServerSay("<" $ Username $ ">" @ Message);
 }
 
 defaultproperties

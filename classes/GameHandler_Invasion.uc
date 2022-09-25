@@ -20,7 +20,7 @@ public function MonitorGame()
 {
     Super.MonitorGame();
 
-    if(Invasion.WaveNum != PreviousWave)
+    if(Invasion.WaveNum != PreviousWave && bGameStarted)
     {
         PreviousWave = Invasion.WaveNum;
         bWaveInProgress = false;

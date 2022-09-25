@@ -245,6 +245,47 @@ begin:
 
 state AwaitingHandshake
 {
+	function SendJson(JsonObject Json)
+	{
+		local string Data;
+		local bool bGarbageCollection;
+		local bool bHandshakeRequest;
+
+		bHandshakeRequest = Json.GetString("protocol") ~= "json" && Json.GetInt("version") == 1;
+
+		// Handshake request should always be the first message sent, block other messages for now
+		if(!bHandshakeRequest)
+		{
+			Json.Clear(); // discard json from memory
+			return;
+		}
+
+		// Determine if we should prevent garbage collection for this json object
+		bGarbageCollection = !Json.GetBool("Wormhole.ManualDisposal");
+		json.RemoveValue("Wormhole.ManualDisposal");
+
+		Data = Json.ToString();
+		Data $= EndOfMessageChar;
+
+		if(Settings.bDebug)
+		{
+			DebugJson = new class'JsonObject';
+			DebugJson.AddString("Data", Data);
+			SendDebugDataToEventGrid("wormhole/debug/sendtext", DebugJson);
+		}
+
+		if(Settings.bDebugDataFlow)
+		{
+			log("Sending: " $ Data, 'Wormhole');
+		}
+
+		SendText(Data);
+
+		// Garbage collection
+		if(bGarbageCollection)
+			Json.Clear();
+	}
+
 	event ReceivedText(string Message)
 	{
 		local JsonObject Json;
