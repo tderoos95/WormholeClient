@@ -128,9 +128,6 @@ function Mutate(string Command, PlayerController PC)
         DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
         DebugSubscriber.DebuggerPC = PC;
         DebugSubscriber.Connection = Connection;
-        //
-        StartMonitoringGame(); // todo: move this to the connection eventgrid subscriber
-        //
         EventGrid.SendEvent("wormhole/debug/instantiated", None);
     }
     // else if(Command ~= "Connect")
