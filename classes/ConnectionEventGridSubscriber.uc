@@ -59,9 +59,10 @@ function OnAuthenticationSuccessful()
     local JsonObject Json;
 
     Json = new class'JsonObject';
-    Json.AddString("Game", Level.Game.GameName);
+    Json.AddString("GameType", Level.Game.GameName);
     Json.AddString("MapName", Level.Title);
     Json.AddString("ServerName", class'Utils'.static.StripColorCodes(Level.Game.GameReplicationInfo.ServerName));
+    Json.AddBool("IsTeamGame", Level.Game.bTeamGame);
     EventGrid.SendEvent("match/info", Json);
 }
 

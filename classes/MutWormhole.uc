@@ -268,7 +268,8 @@ function Timer()
 
 function MonitorPlayers()
 {
-    local int i;
+    local string Ip;
+    local int i, ColonIndex;
     local JsonObject Json;
 
     for(i = 0; i < Players.length; i++)
@@ -279,14 +280,17 @@ function MonitorPlayers()
         // Check if player has joined newly
         if(Players[i].PRI == None)
         {
+            Ip = Players[i].PC.GetPlayerNetworkAddress();
+            ColonIndex = InStr(Ip, ":");
+            if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
+
             Json = new class'JsonObject';
+            Json.AddString("Ip", Ip);
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
             Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
             EventGrid.SendEvent("player/connected", Json);
 
             Players[i].PRI = Players[i].PC.PlayerReplicationInfo;
-            Players[i].bIsSpectator = Players[i].PRI.bIsSpectator;
-            Players[i].LastTeam = Players[i].PRI.Team;
             Players[i].LastName = Players[i].PC.GetHumanReadableName();
             Players[i].PlayerIdHash = Players[i].PC.GetPlayerIdHash();
             continue;
@@ -305,7 +309,7 @@ function MonitorPlayers()
         }
 
         // Check if player has changed teams or became a spectator
-        if(Players[i].PRI.Team != Players[i].LastTeam)
+        if(Players[i].PRI.Team != Players[i].LastTeam || Players[i].bIsSpectator != Players[i].PRI.bOnlySpectator)
         {
             Json = new class'JsonObject';
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
@@ -315,6 +319,7 @@ function MonitorPlayers()
 
             EventGrid.SendEvent("player/changedteam", Json);
             Players[i].LastTeam = Players[i].PRI.Team;
+            Players[i].bIsSpectator = Players[i].PRI.bOnlySpectator;
         }
     }
 }
