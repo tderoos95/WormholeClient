@@ -81,4 +81,5 @@ function OnGameEnded(bool Victory)
 
 defaultproperties {
     PreviousWave=-1
+    bIsCoopGame=True
 }
