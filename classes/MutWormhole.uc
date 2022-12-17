@@ -23,6 +23,7 @@ struct IPlayer {
     var bool bIsSpectator;
     var TeamInfo LastTeam;
     var string LastName;
+    var string PlayerIdHash;
 };
 
 var array<IPlayer> Players;
@@ -245,6 +246,7 @@ function MonitorPlayers()
             Players[i].bIsSpectator = Players[i].PRI.bIsSpectator;
             Players[i].LastTeam = Players[i].PRI.Team;
             Players[i].LastName = Players[i].PC.GetHumanReadableName();
+            Players[i].PlayerIdHash = Players[i].PC.GetPlayerIdHash();
             continue;
         }
 
@@ -300,6 +302,7 @@ function NotifyLogout(Controller Exiting)
 {
 	local PlayerController PC;
     local JsonObject Json;
+    local string PlayerIdHash;
 
 	Super.NotifyLogout(Exiting);
 	PC = PlayerController(Exiting);
@@ -307,11 +310,26 @@ function NotifyLogout(Controller Exiting)
 	if(PC == None)
         return; // not a player
 
+    // PlayerIdHash changes when player disconnects, retrieve stored value instead
+    PlayerIdHash = GetStoredPlayerIdHash(PC.GetHumanReadAbleName());
+
     Json = new class'JsonObject';
-    Json.AddString("PlayerId", PC.GetPlayerIdHash());
+    Json.AddString("PlayerId", PlayerIdHash);
     Json.AddString("PlayerName", PC.PlayerReplicationInfo.PlayerName);
     EventGrid.SendEvent("player/disconnected", Json);
     RemovePlayer(PC);
+}
+
+final function string GetStoredPlayerIdHash(string PlayerName)
+{
+    local int i;
+
+    for(i = 0; i < Players.length; i++)
+    {
+        if(Players[i].PC.GetHumanReadableName() ~= PlayerName)
+            return Players[i].PlayerIdHash;
+    }
+    return "";
 }
 
 function RemovePlayer(PlayerController PC)
