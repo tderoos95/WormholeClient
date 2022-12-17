@@ -65,6 +65,7 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
 	local string DeathMessage;
 	local JsonObject Json;
     local PlayerController KillerPC;
+	local string KilledPlayerId, KillerPlayerId;
 	
     // Prepare death message pt I
 	if(Killer == None || Killer == Killed)
@@ -92,18 +93,21 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
 			DeathMessage = Repl(DeathMessage, "%k", Killer.Name);
 	}
 
-    // Prepare death message pt II
+
+	// PlayerIdHash changes when player disconnects, retrieve stored value instead
+    KilledPlayerId = WormholeMutator.GetStoredPlayerIdHash(Killed.GetHumanReadAbleName());
 	DeathMessage = Repl(DeathMessage, "%o", Killed.PlayerReplicationInfo.PlayerName);
 
 	Json = new class'JsonObject';
-    Json.AddString("KilledId", Killed.GetPlayerIDHash());
+    Json.AddString("KilledId", KilledPlayerId);
     Json.AddString("KilledName", Killed.PlayerReplicationInfo.PlayerName);
 
 
     KillerPC = PlayerController(Killer);
     if(KillerPC != None)
     {
-        Json.AddString("KillerId", KillerPC.GetPlayerIDHash());
+    	KillerPlayerId = WormholeMutator.GetStoredPlayerIdHash(KillerPC.GetHumanReadAbleName());
+        Json.AddString("KillerId", KillerPlayerId);
         Json.AddString("KillerName", KillerPC.PlayerReplicationInfo.PlayerName);
     }
 
