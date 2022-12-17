@@ -77,7 +77,7 @@ function AddGameHandler(class<GameInfo> GameType)
 
     for (i = 0; i < Settings.GameHandlers.length; i++)
     {
-        if (Settings.GameHandlers[i].GameTypeName == GameTypeName)
+        if (Settings.GameHandlers[i].GameTypeName ~= GameTypeName)
         {
             log("Found game handler '" $ string(Settings.GameHandlers[i].GameHandler.Class) $ "' for " $ GameTypeName $ "!");
             GameHandler = Spawn(Settings.GameHandlers[i].GameHandler, self);
