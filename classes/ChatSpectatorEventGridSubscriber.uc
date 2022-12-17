@@ -12,13 +12,11 @@ function PreBeginPlay()
 function ProcessEvent(string Topic, JsonObject EventData)
 {
     if (Topic == DiscordChat)
-    {
-        OnDiscordChat(EventData);
-    }
+        HandleDiscordChat(EventData);
 }
 
 // Forward chat from discord to UT2004
-function OnDiscordChat(JsonObject EventData)
+function HandleDiscordChat(JsonObject EventData)
 {
     local string Username;
     local string Message;
