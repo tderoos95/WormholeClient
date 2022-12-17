@@ -16,6 +16,7 @@ public function SendMatchInfo()
     local JsonObject Json;
 
     Json = new class'JsonObject';
+    Json.AddString("ServerIp", Level.GetAddressURL());
     Json.AddString("GameType", Level.Game.GameName);
     Json.AddString("MapName", Level.Title);
     Json.AddString("ServerName", class'Utils'.static.StripColorCodes(Level.Game.GameReplicationInfo.ServerName));
