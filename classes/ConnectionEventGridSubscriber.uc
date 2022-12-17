@@ -1,14 +1,17 @@
 class ConnectionEventGridSubscriber extends WormholeEventGridSubscriber;
 
 // Connection topics
-const AuthenticationResponse   = "wormhole/authentication/response";
-const ConnectionAttempt        = "wormhole/connection/attempt";
-const ConnectionEstablished    = "wormhole/connection/established";
-const ConnectionLost           = "wormhole/connection/lost";
+const AuthenticationResponse     = "wormhole/authentication/response";
+const ConnectionAttempt          = "wormhole/connection/attempt";
+const ConnectionEstablished      = "wormhole/connection/established";
+const ConnectionLost             = "wormhole/connection/lost";
+
+// Internal
+const SuccessfullyAuthenticated  = "wormhole/internal/authenticated";
 
 // Timer elapse topics
-const ConnectionTimeOutTimer   = "wormhole/connection/timer/timeout";
-const ReconnectTimer           = "wormhole/connection/timer/reconnect";
+const ConnectionTimeOutTimer     = "wormhole/connection/timer/timeout";
+const ReconnectTimer             = "wormhole/connection/timer/reconnect";
 
 var EventGridTimerController TimerController; 
 var WormholeSettings Settings;
@@ -25,11 +28,11 @@ function ProcessEvent(string Topic, JsonObject Json)
     if(Topic ~= AuthenticationResponse)
         ProcessAuthenticationResponse(Json);
     else if(Topic ~= ConnectionAttempt)
-        OnConnectionAttempt();
+        HandleConnectionAttempt();
     else if(Topic ~= ConnectionEstablished)
-        OnConnectionEstablished();
+        HandleConnectionEstablished();
     else if(Topic ~= ConnectionLost)
-        OnConnectionLost();
+        HandleConnectionLost();
     else if(Topic ~= ConnectionTimeOutTimer)
         OnTimeoutElapsed();
     else if(Topic ~= ReconnectTimer)
@@ -45,7 +48,7 @@ function ProcessAuthenticationResponse(JsonObject Json)
     {
         WormholeConnection.GotoState('Authenticated');
         log("Authentication successful", 'Wormhole');
-        OnAuthenticationSuccessful();
+        HandleAuthenticationSuccessful();
     }
     else
     {
@@ -54,31 +57,24 @@ function ProcessAuthenticationResponse(JsonObject Json)
     }
 }
 
-function OnAuthenticationSuccessful()
+function HandleAuthenticationSuccessful()
 {
-    local JsonObject Json;
-
-    Json = new class'JsonObject';
-    Json.AddString("GameType", Level.Game.GameName);
-    Json.AddString("MapName", Level.Title);
-    Json.AddString("ServerName", class'Utils'.static.StripColorCodes(Level.Game.GameReplicationInfo.ServerName));
-    Json.AddBool("IsTeamGame", Level.Game.bTeamGame);
-    EventGrid.SendEvent("match/info", Json);
+    EventGrid.SendEvent(SuccessfullyAuthenticated, None);
 }
 
-function OnConnectionAttempt()
+function HandleConnectionAttempt()
 {
     if(Settings.ConnectTimeout > 0)
         TimerController.CreateTimer(ConnectionTimeOutTimer, Settings.ConnectTimeout);
 }
 
-function OnConnectionEstablished()
+function HandleConnectionEstablished()
 {
     TimerController.DestroyTimer(ConnectionTimeOutTimer);
     TimerController.DestroyTimer(ReconnectTimer);
 }
 
-function OnConnectionLost()
+function HandleConnectionLost()
 {
     log("Connection to wormhole remote server lost", 'Wormhole');
 

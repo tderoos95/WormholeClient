@@ -42,7 +42,6 @@ struct IPlayer {
 };
 
 var array<IPlayer> Players;
-var bool bGameEnded;
 
 
 function PreBeginPlay()
@@ -83,6 +82,7 @@ function AddGameHandler(class<GameInfo> GameType)
             log("Found game handler '" $ string(Settings.GameHandlers[i].GameHandler.Class) $ "' for " $ GameTypeName $ "!");
             GameHandler = Spawn(Settings.GameHandlers[i].GameHandler, self);
             GameHandler.EventGrid = EventGrid;
+            GameHandler.PostInitialize();
             return;
         }
     }
@@ -90,6 +90,7 @@ function AddGameHandler(class<GameInfo> GameType)
     log("No game handler found for " $ GameTypeName $ ", adding default GameHandler", 'Wormhole');
     GameHandler = Spawn(class'GameHandler', self);
     GameHandler.EventGrid = EventGrid;
+    GameHandler.PostInitialize();
 } 
 
 function EventGrid GetOrCreateEventGrid()
@@ -245,7 +246,10 @@ function WormholeConnection CreateConnection()
 
 function bool CheckReplacement(Actor Other, out byte bSuperRelevant)
 {
-    if(PlayerController(Other) != None)
+    local bool bIsPlayer;
+
+    bIsPlayer = PlayerController(Other) != None && UTServerAdminSpectator(Other) == None;
+    if(bIsPlayer)
     {
         Players.Insert(0, 1);
         Players[0].PC = PlayerController(Other);
@@ -332,10 +336,8 @@ function bool StartsWith(string String, string Prefix)
 // Match starts
 function MatchStarting()
 {
-    EventGrid.SendEvent("match/started", None);
-
     if(GameHandler != None)
-        GameHandler.bGameStarted = true;
+        GameHandler.HandleMatchStarted();
 }
 
 // Player disconnected
