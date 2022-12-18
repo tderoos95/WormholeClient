@@ -8,6 +8,22 @@ var bool bGameEnded;
 public function PostInitialize()
 {
     log("GameHandler initialized", 'Wormhole');
+    PrepareSendMatchInfo();
+}
+
+function PrepareSendMatchInfo()
+{
+    SetTimer(0.1, false);
+}
+
+function Timer()
+{
+    if(Level.Game.GameReplicationInfo == None)
+    {
+        SetTimer(0.1, false);
+        return;
+    }
+
     SendMatchInfo();
 }
 
@@ -17,9 +33,9 @@ public function SendMatchInfo()
 
     Json = new class'JsonObject';
     Json.AddString("ServerIp", Level.GetAddressURL());
+    Json.AddString("ServerName", class'Utils'.static.StripColorCodes(Level.Game.GameReplicationInfo.ServerName));
     Json.AddString("GameType", Level.Game.GameName);
     Json.AddString("MapName", Level.Title);
-    Json.AddString("ServerName", class'Utils'.static.StripColorCodes(Level.Game.GameReplicationInfo.ServerName));
     Json.AddBool("IsTeamGame", Level.Game.bTeamGame);
     Json.AddBool("IsCoopGame", bIsCoopGame);
     EventGrid.SendEvent("match/info", Json);

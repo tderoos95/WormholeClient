@@ -43,7 +43,6 @@ struct IPlayer {
 
 var array<IPlayer> Players;
 
-
 function PreBeginPlay()
 {
     Super.PreBeginPlay();
@@ -62,8 +61,11 @@ function PreBeginPlay()
     Level.Game.AddGameModifier(GameRules);
 
     CreateConnection();
+}
 
-    // Add game handler
+function PostBeginPlay()
+{
+    Super.PostBeginPlay();
     AddGameHandler(Level.Game.Class);
 }
 
