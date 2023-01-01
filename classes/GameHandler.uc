@@ -5,10 +5,21 @@ var bool bIsCoopGame;
 var bool bGameStarted;
 var bool bGameEnded;
 
+var TriggerEventListener GameEndedListener;
+
 public function PostInitialize()
 {
+    log("Initializing GameHandler...", 'Wormhole');
+    SubscribeToGameInfoEvents();
     log("GameHandler initialized", 'Wormhole');
     PrepareSendMatchInfo();
+}
+
+function SubscribeToGameInfoEvents()
+{
+    GameEndedListener = Spawn(class'TriggerEventListener');
+    GameEndedListener.Subscribe('EndGame');
+    GameEndedListener.Callback = HandleMatchEnded;
 }
 
 function PrepareSendMatchInfo()
@@ -41,25 +52,13 @@ public function SendMatchInfo()
     EventGrid.SendEvent("match/info", Json);
 }
 
-// Called every 0.1 seconds by WormholeMutator
 public function MonitorGame()
-{
-    CheckEndGame();
-}
+{}
 
 public function HandleMatchStarted()
 {
     bGameStarted = true;
     EventGrid.SendEvent("match/started", None);
-}
-
-function CheckEndGame()
-{
-    if(!bGameEnded && Level.Game.bGameEnded)
-    {
-        bGameEnded = true;
-        HandleMatchEnded();
-    }
 }
 
 function HandleMatchEnded()

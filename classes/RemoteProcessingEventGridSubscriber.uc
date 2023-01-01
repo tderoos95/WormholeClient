@@ -63,8 +63,6 @@ function ProcessEvent(string Topic, JsonObject EventData)
 
 function HandleAuthenticated()
 {
-    local int i;
-
     bIsAuthenticated = true;
     ProcessQueuedEvents();
 }

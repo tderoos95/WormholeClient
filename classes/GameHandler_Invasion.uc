@@ -51,31 +51,29 @@ function OnWaveStarted()
     EventGrid.SendEvent("match/invasion/wavestarted", Json);
 }
 
-function CheckEndGame()
+function bool IsMatchVictorious()
 {
     local Controller C;
     local int NumAlivePlayers;
 
-    if(!bGameEnded && Level.Game.bGameEnded)
+    for(C = Level.ControllerList; C != None; C = C.NextController)
     {
-        bGameEnded = true;
-
-        for(C = Level.ControllerList; C != None; C = C.NextController)
-        {
-            if(C.bIsPlayer && C.Pawn != None)
-                NumAlivePlayers++;
-        }
-
-        OnGameEnded(NumAlivePlayers > 0);
+        if(C.bIsPlayer && C.Pawn != None)
+            NumAlivePlayers++;
     }
+
+    return NumAlivePlayers > 0;
 }
 
-function OnGameEnded(bool Victory)
+function OnGameEnded()
 {
     local JsonObject Json;
+    local bool bVictory;
+
+    bVictory = IsMatchVictorious();
 
     Json = new class'JsonObject';
-    Json.AddBool("Victory", Victory);
+    Json.AddBool("Victory", bVictory);
     EventGrid.SendEvent("match/invasion/ended", Json);
 }
 
