@@ -131,6 +131,7 @@ function UnwrapIncomingJson(JsonObject Json)
 	// Wormhole: * {"success":false}
 	local array<string> Arguments;
 	local int Type;
+	local int i;
 
 	Type = Json.GetInt("type");
 
@@ -142,8 +143,10 @@ function UnwrapIncomingJson(JsonObject Json)
 
 	if(Arguments.length == 0)
 		return;
-	
-	class'JsonConvert'.static.DeserializeIntoExistingObject(Json, Arguments[0]);
+
+	// Deserialize nested values into root json object
+	for(i = 0; i < Arguments.length; i++)
+		class'JsonConvert'.static.DeserializeIntoExistingObject(Json, Arguments[i]);
 
 	Json.RemoveValue("type");
 	Json.RemoveArrayValue("arguments");
@@ -242,6 +245,47 @@ begin:
 
 state AwaitingHandshake
 {
+	function SendJson(JsonObject Json)
+	{
+		local string Data;
+		local bool bGarbageCollection;
+		local bool bHandshakeRequest;
+
+		bHandshakeRequest = Json.GetString("protocol") ~= "json" && Json.GetInt("version") == 1;
+
+		// Handshake request should always be the first message sent, block other messages for now
+		if(!bHandshakeRequest)
+		{
+			Json.Clear(); // discard json from memory
+			return;
+		}
+
+		// Determine if we should prevent garbage collection for this json object
+		bGarbageCollection = !Json.GetBool("Wormhole.ManualDisposal");
+		json.RemoveValue("Wormhole.ManualDisposal");
+
+		Data = Json.ToString();
+		Data $= EndOfMessageChar;
+
+		if(Settings.bDebug)
+		{
+			DebugJson = new class'JsonObject';
+			DebugJson.AddString("Data", Data);
+			SendDebugDataToEventGrid("wormhole/debug/sendtext", DebugJson);
+		}
+
+		if(Settings.bDebugDataFlow)
+		{
+			log("Sending: " $ Data, 'Wormhole');
+		}
+
+		SendText(Data);
+
+		// Garbage collection
+		if(bGarbageCollection)
+			Json.Clear();
+	}
+
 	event ReceivedText(string Message)
 	{
 		local JsonObject Json;
@@ -300,6 +344,11 @@ state AwaitingAuthentication // HandshakePerformed
 	{
 		local JsonObject Json;
 		
+		if(Settings.bDebugDataFlow)
+		{
+			log("Received raw text: " $ Message, Name);
+		}
+
 		Json = DeserializeJson(Message);
 		UnwrapIncomingJson(Json);
 		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
@@ -324,6 +373,11 @@ state Authenticated
 	event ReceivedText(string Message)
 	{
 		local JsonObject Json;
+
+		if(Settings.bDebugDataFlow)
+		{
+			log("Received raw text: " $ Message, Name);
+		}
 		
 		Json = DeserializeJson(Message);
 		UnwrapIncomingJson(Json);
