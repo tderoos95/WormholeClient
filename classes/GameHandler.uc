@@ -1,5 +1,12 @@
 class GameHandler extends Info;
 
+enum TimerModeType
+{
+    AwaitGameInitialized,
+    AwaitMatchEnded
+};
+
+var TimerModeType TimerMode;
 var EventGrid EventGrid;
 var bool bIsCoopGame;
 var bool bGameStarted;
@@ -19,23 +26,38 @@ function SubscribeToGameInfoEvents()
 {
     GameEndedListener = Spawn(class'TriggerEventListener');
     GameEndedListener.Subscribe('EndGame');
-    GameEndedListener.Callback = HandleMatchEnded;
+    GameEndedListener.Callback = AwaitMatchEnded;
 }
 
 function PrepareSendMatchInfo()
 {
+    TimerMode = TimerModeType.AwaitGameInitialized;
     SetTimer(0.1, false);
 }
 
 function Timer()
 {
-    if(Level.Game.GameReplicationInfo == None)
+    if(TimerMode == AwaitGameInitialized)
     {
-        SetTimer(0.1, false);
-        return;
+        if(Level.Game.GameReplicationInfo == None)
+        {
+            SetTimer(0.1, false);
+            return;
+        }
+
+        SendMatchInfo();
     }
 
-    SendMatchInfo();
+    if(TimerMode == AwaitMatchEnded)
+    {
+        if(!Level.Game.bGameEnded)
+        {
+            SetTimer(0.1, false);
+            return;
+        }
+
+        HandleMatchEnded();
+    }
 }
 
 public function SendMatchInfo()
@@ -59,6 +81,12 @@ public function HandleMatchStarted()
 {
     bGameStarted = true;
     EventGrid.SendEvent("match/started", None);
+}
+
+function AwaitMatchEnded()
+{
+    TimerMode = AwaitMatchEnded;
+    SetTimer(0.1, false);
 }
 
 function HandleMatchEnded()
