@@ -51,6 +51,18 @@ function OnWaveStarted()
     EventGrid.SendEvent("match/invasion/wavestarted", Json);
 }
 
+function HandleMatchEnded()
+{
+    local JsonObject Json;
+    local bool bVictory;
+
+    bVictory = IsMatchVictorious();
+
+    Json = new class'JsonObject';
+    Json.AddBool("Victory", bVictory);
+    EventGrid.SendEvent("match/invasion/ended", Json);
+}
+
 function bool IsMatchVictorious()
 {
     local Controller C;
@@ -63,18 +75,6 @@ function bool IsMatchVictorious()
     }
 
     return NumAlivePlayers > 0;
-}
-
-function OnGameEnded()
-{
-    local JsonObject Json;
-    local bool bVictory;
-
-    bVictory = IsMatchVictorious();
-
-    Json = new class'JsonObject';
-    Json.AddBool("Victory", bVictory);
-    EventGrid.SendEvent("match/invasion/ended", Json);
 }
 
 defaultproperties {
