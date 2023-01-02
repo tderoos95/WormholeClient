@@ -2,6 +2,7 @@ class ChatSpectator extends MessagingSpectator;
 
 var MutWormhole WormholeMutator;
 var string SpectatorName;
+var ChatSpectatorEventGridSubscriber SpectatorEventGridSubscriber;
 var EventGrid EventGrid;
 
 event PreBeginPlay()
@@ -9,7 +10,9 @@ event PreBeginPlay()
 	Super.PreBeginPlay();
 	
 	WormholeMutator = MutWormhole(Owner);
-	EventGrid = WormholeMutator.EventGrid;
+
+	SpectatorEventGridSubscriber = Spawn(class'ChatSpectatorEventGridSubscriber', self);
+	EventGrid = SpectatorEventGridSubscriber.GetOrCreateEventGrid();
 	SpectatorName = WormholeMutator.Settings.ChatSpectatorName;
 
 	EventGrid.SendEvent("wormhole/chatspectator/chatspecator_name_" $ SpectatorName, None);

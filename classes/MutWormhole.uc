@@ -4,19 +4,34 @@ class MutWormhole extends Mutator
 
 const DEBUG = true;
 
+//=========================================================
+// Wormhole related variables
+//=========================================================
 var WormholeSettings Settings;
 var WormholeConnection Connection;
 var ChatSpectator ChatSpectator;
 var EventGridTimerController TimerController;
 var WormholeGameRules GameRules;
 
-// debug
+//=========================================================
+// Game handlers
+//=========================================================
+struct GameHandlerRegistration {
+    var string GameTypeName;
+    var class<GameHandler> GameHandler;
+};
+var GameHandler GameHandler;
+
+//=========================================================
+// Event management
+//=========================================================
 var DebugEventGridSubscriber DebugSubscriber;
+var MutWormholeEventGridSubscriber MutatorEventGridSubscriber;
 var EventGrid EventGrid;
 
-//=============================================================================
+//=========================================================
 // Tracking variables for reporting
-//=============================================================================
+//=========================================================
 struct IPlayer {
     var PlayerController PC;
     var PlayerReplicationInfo PRI;
@@ -27,8 +42,6 @@ struct IPlayer {
 };
 
 var array<IPlayer> Players;
-var bool bGameEnded;
-
 
 function PreBeginPlay()
 {
@@ -38,16 +51,49 @@ function PreBeginPlay()
     Settings.SaveConfig();
 	SaveConfig();
 
-    EventGrid = GetOrCreateEventGrid();
+    MutatorEventGridSubscriber = Spawn(class'MutWormholeEventGridSubscriber', self);
+    EventGrid = MutatorEventGridSubscriber.GetOrCreateEventGrid();
     TimerController = Spawn(class'EventGridTimerController', self);
     ChatSpectator = Spawn(class'ChatSpectator', self);
 
     // Add game rules
     GameRules = Spawn(class'WormholeGameRules', self);
     Level.Game.AddGameModifier(GameRules);
-    
+
     CreateConnection();
 }
+
+function PostBeginPlay()
+{
+    Super.PostBeginPlay();
+    AddGameHandler(Level.Game.Class);
+}
+
+function AddGameHandler(class<GameInfo> GameType)
+{
+    local string GameTypeName;
+    local int i;
+    
+    GameTypeName = string(GameType);
+    log("Adding game handler for " $ GameTypeName $ "...", 'Wormhole');
+
+    for (i = 0; i < Settings.GameHandlers.length; i++)
+    {
+        if (Settings.GameHandlers[i].GameTypeName ~= GameTypeName)
+        {
+            log("Found game handler '" $ string(Settings.GameHandlers[i].GameHandler.Class) $ "' for " $ GameTypeName $ "!");
+            GameHandler = Spawn(Settings.GameHandlers[i].GameHandler, self);
+            GameHandler.EventGrid = EventGrid;
+            GameHandler.PostInitialize();
+            return;
+        }
+    }
+
+    log("No game handler found for " $ GameTypeName $ ", adding default GameHandler", 'Wormhole');
+    GameHandler = Spawn(class'GameHandler', self);
+    GameHandler.EventGrid = EventGrid;
+    GameHandler.PostInitialize();
+} 
 
 function EventGrid GetOrCreateEventGrid()
 {
@@ -85,9 +131,6 @@ function Mutate(string Command, PlayerController PC)
         DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
         DebugSubscriber.DebuggerPC = PC;
         DebugSubscriber.Connection = Connection;
-        //
-        StartMonitoringPlayers(); // todo: move this to the connection eventgrid subscriber
-        //
         EventGrid.SendEvent("wormhole/debug/instantiated", None);
     }
     // else if(Command ~= "Connect")
@@ -205,7 +248,10 @@ function WormholeConnection CreateConnection()
 
 function bool CheckReplacement(Actor Other, out byte bSuperRelevant)
 {
-    if(PlayerController(Other) != None)
+    local bool bIsPlayer;
+
+    bIsPlayer = PlayerController(Other) != None && UTServerAdminSpectator(Other) == None;
+    if(bIsPlayer)
     {
         Players.Insert(0, 1);
         Players[0].PC = PlayerController(Other);
@@ -213,7 +259,7 @@ function bool CheckReplacement(Actor Other, out byte bSuperRelevant)
     return Super.CheckReplacement(Other, bSuperRelevant);
 }
 
-function StartMonitoringPlayers()
+function StartMonitoringGame()
 {
     SetTimer(0.1, true);
 }
@@ -221,12 +267,15 @@ function StartMonitoringPlayers()
 function Timer()
 {
     MonitorPlayers();
-    CheckEndGame();
+
+    if(GameHandler != None)
+        GameHandler.MonitorGame();
 }
 
 function MonitorPlayers()
 {
-    local int i;
+    local string Ip;
+    local int i, ColonIndex;
     local JsonObject Json;
 
     for(i = 0; i < Players.length; i++)
@@ -237,14 +286,17 @@ function MonitorPlayers()
         // Check if player has joined newly
         if(Players[i].PRI == None)
         {
+            Ip = Players[i].PC.GetPlayerNetworkAddress();
+            ColonIndex = InStr(Ip, ":");
+            if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
+
             Json = new class'JsonObject';
+            Json.AddString("Ip", Ip);
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
             Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
             EventGrid.SendEvent("player/connected", Json);
 
             Players[i].PRI = Players[i].PC.PlayerReplicationInfo;
-            Players[i].bIsSpectator = Players[i].PRI.bIsSpectator;
-            Players[i].LastTeam = Players[i].PRI.Team;
             Players[i].LastName = Players[i].PC.GetHumanReadableName();
             Players[i].PlayerIdHash = Players[i].PC.GetPlayerIdHash();
             continue;
@@ -263,7 +315,7 @@ function MonitorPlayers()
         }
 
         // Check if player has changed teams or became a spectator
-        if(Players[i].PRI.Team != Players[i].LastTeam)
+        if(Players[i].PRI.Team != Players[i].LastTeam || Players[i].bIsSpectator != Players[i].PRI.bOnlySpectator)
         {
             Json = new class'JsonObject';
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
@@ -273,16 +325,8 @@ function MonitorPlayers()
 
             EventGrid.SendEvent("player/changedteam", Json);
             Players[i].LastTeam = Players[i].PRI.Team;
+            Players[i].bIsSpectator = Players[i].PRI.bOnlySpectator;
         }
-    }
-}
-
-function CheckEndGame()
-{
-    if(!bGameEnded && Level.Game.bGameEnded)
-    {
-        bGameEnded = true;
-        EventGrid.SendEvent("match/ended", None);
     }
 }
 
@@ -294,7 +338,8 @@ function bool StartsWith(string String, string Prefix)
 // Match starts
 function MatchStarting()
 {
-    EventGrid.SendEvent("match/started", None);
+    if(GameHandler != None)
+        GameHandler.HandleMatchStarted();
 }
 
 // Player disconnected
@@ -373,7 +418,8 @@ function ReportTravel(string NextURL)
 	{
 		SeparatorCharacterIndex = InStr(NextURL, "?");
 		
-		if(SeparatorCharacterIndex > 0) {
+		if(SeparatorCharacterIndex > 0)
+        {
 			NextMap = Left(NextURL, SeparatorCharacterIndex);
 			NextURL = Mid(NextURL, SeparatorCharacterIndex);
 		}
