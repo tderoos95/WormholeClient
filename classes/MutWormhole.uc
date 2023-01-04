@@ -2,7 +2,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const DEBUG = true;
+const RELEASE_VERSION = "0.8.1-beta";
 
 //=========================================================
 // Wormhole related variables
@@ -51,16 +51,25 @@ function PreBeginPlay()
     Settings.SaveConfig();
 	SaveConfig();
 
+    log("===================================================================", 'Wormhole');
+    log("Wormhole " $ RELEASE_VERSION, 'Wormhole');
+    log("https://discord.unrealuniverse.net", 'Wormhole');
+    if(Settings.bDebug) log("!! Wormhole is running in DEBUG mode, debug commands are enabled !!", 'Wormhole');
+    log("===================================================================", 'Wormhole');
+
     MutatorEventGridSubscriber = Spawn(class'MutWormholeEventGridSubscriber', self);
     EventGrid = MutatorEventGridSubscriber.GetOrCreateEventGrid();
     TimerController = Spawn(class'EventGridTimerController', self);
     ChatSpectator = Spawn(class'ChatSpectator', self);
 
-    // Add game rules
+    AddGameRules();
+    CreateConnection();
+}
+
+function AddGameRules()
+{
     GameRules = Spawn(class'WormholeGameRules', self);
     Level.Game.AddGameModifier(GameRules);
-
-    CreateConnection();
 }
 
 function PostBeginPlay()
@@ -93,36 +102,18 @@ function AddGameHandler(class<GameInfo> GameType)
     GameHandler = Spawn(class'GameHandler', self);
     GameHandler.EventGrid = EventGrid;
     GameHandler.PostInitialize();
-} 
-
-function EventGrid GetOrCreateEventGrid()
-{
-    local bool bFound;
-
-    foreach AllActors(class'EventGrid', EventGrid)
-    {
-        bFound = true;
-        break;
-    }
-    
-    if(!bFound)
-    {
-        log("EventGrid not found, creating one");
-        EventGrid = Spawn(class'EventGrid');
-    }
-    
-    return EventGrid;
 }
 
 function Mutate(string Command, PlayerController PC)
 {
     local string GivenIp;
-    local int i;
+    local bool bAuthorized;
 
     if(NextMutator != None)
         NextMutator.Mutate(Command, PC);
     
-    if(!DEBUG)
+    bAuthorized = Settings.bDebug && PC.PlayerReplicationInfo.bAdmin;
+    if(!bAuthorized)
         return;
 
     if(Command ~= "ToggleDebug")
@@ -133,107 +124,17 @@ function Mutate(string Command, PlayerController PC)
         DebugSubscriber.Connection = Connection;
         EventGrid.SendEvent("wormhole/debug/instantiated", None);
     }
-    // else if(Command ~= "Connect")
-    // {
-    //     PC.ClientMessage("Connecting to " $ Settings.HostName $ ":" $ Settings.Port);
-    //     CreateConnection();
-    // }
+    else if(Command ~= "Connect")
+    {
+        PC.ClientMessage("Connecting to " $ Settings.HostName $ ":" $ Settings.Port);
+        CreateConnection();
+    }
     else if(StartsWith(Command, "ConnectTo"))
     {
         GivenIp = Mid(Command, Len("ConnectTo") + 1);
         PC.ClientMessage("Connecting to " $ GivenIp $ ":" $ Settings.Port);
         Connection.SetConnection(GivenIp, Settings.Port);
     }
-    else if(Command ~= "TestTimerMultiple")
-    {
-        TimerController.CreateTimer("wormhole/test/timer/1", 9);
-        TimerController.CreateTimer("wormhole/test/timer/2", 6, true);
-        TimerController.CreateTimer("wormhole/test/timer/3", 3);
-        PC.ClientMessage("Test timers created");
-    }
-    else if(Command ~= "DestroyTimer")
-    {
-        TimerController.DestroyTimer("wormhole/test/timer/2");
-        PC.ClientMessage("Destroyed timer");
-    }
-    else if(Command ~= "TestTimerOneShot")
-    {
-        TimerController.CreateTimer("wormhole/test/timer/elapsed", 3);
-        PC.ClientMessage("Created timer");
-    }
-    else if(Command ~= "TestTimer")
-    {
-        TimerController.CreateTimer("wormhole/test/timer/elapsed", 1, true);
-        PC.ClientMessage("Created timer");
-    }
-    else if(Command ~= "DebugTimer")
-    {
-        PC.ClientMessage("Current time: " $ Level.TimeSeconds);
-        PC.ClientMessage("Next elapse: " $ TimerController.NextTimerElapse);
-
-        for(i = 0; i < TimerController.ActiveTimers.length; i++)
-        {
-            PC.ClientMessage(TimerController.ActiveTimers[i].CallbackTopic $ " elapses at " $ TimerController.ActiveTimers[i].ElapsesAt);
-        }
-    }
-    else if(StartsWith(Command, "FloodWormhole"))
-    {
-        FloodWormhole(PC, Command);
-    }
-}
-
-function FloodWormhole(PlayerController PC, string Command)
-{
-    local JsonObject Json;
-    local int SpaceIndex;
-    local int Count;
-    local int i;
-    local bool bManualDisposal;
-    local string NextPart;
-
-    SpaceIndex = InStr(Command, " ");
-
-    if(SpaceIndex == -1)
-    {
-        PC.ClientMessage("Usage: FloodWormhole <garbagecollection:bool> <count:int>");
-        return;
-    }
-
-    NextPart = Mid(Command, SpaceIndex + 1);
-    SpaceIndex = InStr(NextPart, " ");
-
-    PC.ClientMessage("Garbage collection: " $ Left(NextPart, SpaceIndex));
-
-    bManualDisposal = !bool(Left(NextPart, SpaceIndex));
-    Count = int(Mid(NextPart, SpaceIndex + 1));
-
-    if(Count <= 0)
-    {
-        PC.ClientMessage("Count must be greater than 0");
-        return;
-    }
-
-    PC.ClientMessage(Eval(bManualDisposal, 
-        "Flooding wormhole without garbage collection. " $ Count $ " messages...",
-        "Flooding wormhole with garbage collection. " $ Count $ " messages..."));
-
-    for(i = 0; i < Count; i++)
-    {
-        Json = new class'JsonObject';
-        Json.AddInt("id", i);
-        Json.AddString("text", "This is a test message");
-        Json.AddFloat("time", Level.TimeSeconds);
-        Json.AddString("type", "chat");
-        Json.AddString("sender", "Test");
-        Json.AddString("team", "Red");
-        Json.AddString("channel", "All");
-        Json.AddString("color", "255,0,0");
-
-        Json.AddBool("Wormhole.ManualDisposal", bManualDisposal);
-        EventGrid.SendEvent("wormhole/test/flood", Json);
-    }
-
-    PC.ClientMessage("Flooded wormhole with " $ Count $ " messages");
 }
 
 function WormholeConnection CreateConnection()
@@ -453,6 +354,6 @@ function ReportTravel(string NextURL)
 
 defaultproperties
 {
-    FriendlyName="Wormhole"
+    // FriendlyName="Wormhole"
     Description="Wormhole is a mutator that reports everything that happens inside the server to the Wormhole server. The wormhole server is then able to report to Discord, or even a live feed on a website."
 }
