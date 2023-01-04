@@ -16,5 +16,14 @@ var globalconfig array<MutWormhole.GameHandlerRegistration> GameHandlers;
 
 defaultproperties
 {
+    bDebug=false
+    bDebugDataFlow=false
+    ChatSpectatorName="Discord"
+    bAutoReconnect=false
+    ConnectTimeout=10
+    ReconnectInterval=10
+
+    Port=13000
+
     GameHandlers(0)=(GameTypeName="SkaarjPack.Invasion",GameHandler=class'GameHandler_Invasion');
 }
