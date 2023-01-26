@@ -178,11 +178,23 @@ function MonitorPlayers()
     local string Ip;
     local int i, ColonIndex;
     local JsonObject Json;
+    local string PlayerIdHash;
 
     for(i = 0; i < Players.length; i++)
     {
-        if(Players[i].PC == None)
-            continue; // Removal of Player is handled in NotifyLogout
+        // Player disconnected
+        if(Players[i].PC == None && Players[i].LastName != "")
+        {
+            Json = new class'JsonObject';
+            Json.AddString("PlayerId", Players[i].PlayerIdHash);
+            Json.AddString("PlayerName", Players[i].LastName);
+            EventGrid.SendEvent("player/disconnected", Json);
+
+            // Remove player and correct array index
+            Players.Remove(i, 1);
+            i--;
+            continue;
+        }
 
         // Check if player has joined newly
         if(Players[i].PRI == None)
@@ -243,29 +255,6 @@ function MatchStarting()
         GameHandler.HandleMatchStarted();
 }
 
-// Player disconnected
-function NotifyLogout(Controller Exiting)
-{
-	local PlayerController PC;
-    local JsonObject Json;
-    local string PlayerIdHash;
-
-	Super.NotifyLogout(Exiting);
-	PC = PlayerController(Exiting);
-	
-	if(PC == None)
-        return; // not a player
-
-    // PlayerIdHash changes when player disconnects, retrieve stored value instead
-    PlayerIdHash = GetStoredPlayerIdHash(PC.GetHumanReadAbleName());
-
-    Json = new class'JsonObject';
-    Json.AddString("PlayerId", PlayerIdHash);
-    Json.AddString("PlayerName", PC.PlayerReplicationInfo.PlayerName);
-    EventGrid.SendEvent("player/disconnected", Json);
-    RemovePlayer(PC);
-}
-
 final function string GetStoredPlayerIdHash(string PlayerName)
 {
     local int i;
@@ -276,20 +265,6 @@ final function string GetStoredPlayerIdHash(string PlayerName)
             return Players[i].PlayerIdHash;
     }
     return "";
-}
-
-function RemovePlayer(PlayerController PC)
-{
-    local int i;
-
-    for(i = 0; i < Players.length; i++)
-    {
-        if(Players[i].PC == PC)
-        {
-            Players.Remove(i, 1);
-            break;
-        }
-    }
 }
 
 // Map switch
