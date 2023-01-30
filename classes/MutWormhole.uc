@@ -179,7 +179,6 @@ function MonitorPlayers()
     local string Ip;
     local int i, ColonIndex;
     local JsonObject Json;
-    local string PlayerIdHash;
 
     for(i = 0; i < Players.length; i++)
     {
