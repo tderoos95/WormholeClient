@@ -2,7 +2,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "0.8.1-beta";
+const RELEASE_VERSION = "0.8.3-beta";
 
 //=========================================================
 // Wormhole related variables
@@ -42,6 +42,7 @@ struct IPlayer {
 };
 
 var array<IPlayer> Players;
+var bool bHasReportedServerTravel;
 
 function PreBeginPlay()
 {
@@ -282,8 +283,11 @@ function ReportTravel(string NextURL)
 	local string NextMap;
 	local string NextGame;
 	local int SeparatorCharacterIndex;
-	
 	local class<GameInfo> NextGameClass;
+
+    if(bHasReportedServerTravel) 
+        return; // this fix is required for InvasionPro. InvasionPro calls ServerTraveling twice.
+    bHasReportedServerTravel = true;
 	
 	if(NextURL ~= "?restart")
 	{
