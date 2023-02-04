@@ -22,6 +22,12 @@ public function MonitorGame()
 
     if(Invasion.WaveNum != PreviousWave && bGameStarted)
     {
+        // Do not trigger next wave countdown until we're certain that
+        // the game hasn't already ended. There is no way to check the
+        // total amount of waves in custom Invasion derived gametypes.
+        if(Invasion.WaveCountDown > 10)
+            return;
+
         PreviousWave = Invasion.WaveNum;
         bWaveInProgress = false;
         OnWaveCountdownStarted();
