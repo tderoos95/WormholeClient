@@ -2,7 +2,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "0.8.3-beta";
+const RELEASE_VERSION = "0.8.4-beta";
 
 //=========================================================
 // Wormhole related variables
