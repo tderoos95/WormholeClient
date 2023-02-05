@@ -26,6 +26,9 @@ function PreBeginPlay()
 
 function bool PreventDeath(Pawn KilledPawn, Controller Killer, class<DamageType> DamageType, vector HitLocation)
 {
+	if(KilledPawn == None)
+		return Super.PreventDeath(KilledPawn, Killer, DamageType, HitLocation);;
+
 	// Queue the kill for later processing, any mutator in the chain can still call it off at this point
 	QueuedKill.Killed = KilledPawn.Controller;
 	QueuedKill.Killer = Killer;
