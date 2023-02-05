@@ -179,6 +179,7 @@ function MonitorPlayers()
     local string Ip;
     local int i, ColonIndex;
     local JsonObject Json;
+    local bool bIsGhost;
 
     for(i = 0; i < Players.length; i++)
     {
