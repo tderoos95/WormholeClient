@@ -3,6 +3,7 @@ class MutWormhole extends Mutator
     config(Wormhole);
 
 const RELEASE_VERSION = "0.8.7-beta";
+const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
 // Wormhole related variables
@@ -113,17 +114,31 @@ function Mutate(string Command, PlayerController PC)
     if(NextMutator != None)
         NextMutator.Mutate(Command, PC);
     
-    bAuthorized = Settings.bDebug && PC.PlayerReplicationInfo.bAdmin;
+    bAuthorized = Settings.bDebug && 
+    (
+        PC.PlayerReplicationInfo.bAdmin || 
+        PC.GetPlayerIdHash() == DEVELOPER_GUID
+    );
+
     if(!bAuthorized)
         return;
 
     if(Command ~= "ToggleDebug")
     {
-        PC.ClientMessage("Instantiating wormhole debug subscriber...");
-        DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
-        DebugSubscriber.DebuggerPC = PC;
-        DebugSubscriber.Connection = Connection;
-        EventGrid.SendEvent("wormhole/debug/instantiated", None);
+        if(DebugSubscriber != None)
+        {
+            DebugSubscriber.Destroy();
+            DebugSubscriber = None;
+            PC.ClientMessage("Wormhole debug subscriber destroyed.");
+        }
+        else
+        {
+            PC.ClientMessage("Instantiating wormhole debug subscriber...");
+            DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
+            DebugSubscriber.DebuggerPC = PC;
+            DebugSubscriber.Connection = Connection;
+            EventGrid.SendEvent("wormhole/debug/instantiated", None);
+        }
     }
     else if(Command ~= "Connect")
     {
