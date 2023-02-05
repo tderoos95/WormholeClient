@@ -91,6 +91,7 @@ function AwaitMatchEnded()
 
 function HandleMatchEnded()
 {
+    GameEndedListener.Destroy();
     EventGrid.SendEvent("match/ended", None);
 }
 
