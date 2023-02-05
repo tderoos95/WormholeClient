@@ -200,6 +200,16 @@ function MonitorPlayers()
         if(Players[i].PRI == None)
         {
             Ip = Players[i].PC.GetPlayerNetworkAddress();
+            bIsGhost = Players[i].PC.GetPlayerNetworkAddress() == "";
+
+            // Don't track BTimes Ghosts
+            if(bIsGhost)
+            {
+                Players.Remove(i, 1);
+                i--;
+                continue;
+            }
+
             ColonIndex = InStr(Ip, ":");
             if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
 
