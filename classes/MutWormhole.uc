@@ -179,6 +179,7 @@ function MonitorPlayers()
     local string Ip;
     local int i, ColonIndex;
     local JsonObject Json;
+    local bool bIsGhost;
 
     for(i = 0; i < Players.length; i++)
     {
@@ -200,6 +201,16 @@ function MonitorPlayers()
         if(Players[i].PRI == None)
         {
             Ip = Players[i].PC.GetPlayerNetworkAddress();
+            bIsGhost = Players[i].PC.GetPlayerNetworkAddress() == "";
+
+            // Don't track BTimes Ghosts
+            if(bIsGhost)
+            {
+                Players.Remove(i, 1);
+                i--;
+                continue;
+            }
+
             ColonIndex = InStr(Ip, ":");
             if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
 
@@ -228,7 +239,7 @@ function MonitorPlayers()
         }
 
         // Check if player has changed teams or became a spectator
-        if(Players[i].PRI.Team != Players[i].LastTeam || Players[i].bIsSpectator != Players[i].PRI.bOnlySpectator)
+        if(Players[i].PRI.Team != None && Players[i].PRI.Team != Players[i].LastTeam || Players[i].bIsSpectator != Players[i].PRI.bOnlySpectator)
         {
             Json = new class'JsonObject';
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
