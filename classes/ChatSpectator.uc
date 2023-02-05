@@ -16,7 +16,6 @@ event PreBeginPlay()
 	SpectatorName = WormholeMutator.Settings.ChatSpectatorName;
 
 	EventGrid.SendEvent("wormhole/chatspectator/chatspecator_name_" $ SpectatorName, None);
-	PlayerReplicationInfo.PlayerName = SpectatorName;
 }
 
 function InitPlayerReplicationInfo()
