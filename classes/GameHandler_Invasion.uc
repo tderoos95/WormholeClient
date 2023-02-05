@@ -62,6 +62,7 @@ function HandleMatchEnded()
     local JsonObject Json;
     local bool bVictory;
 
+    GameEndedListener.Destroy();
     bVictory = IsMatchVictorious();
 
     Json = new class'JsonObject';
