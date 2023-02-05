@@ -70,6 +70,9 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
     // Prepare death message pt I
 	if(Killer == None || Killer == Killed)
 	{
+		if(WormholeMutator.Settings.bDisableSuicideReporting)
+			return;
+
 		DeathMessage = PlayerSuicided;
 			
 		if (class<FellLava>(DamageType) != None)
