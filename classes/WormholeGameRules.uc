@@ -69,13 +69,12 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
 	local JsonObject Json;
     local PlayerController KillerPC;
 	local string KilledPlayerId, KillerPlayerId;
+	local bool bSuicide;
 	
     // Prepare death message pt I
 	if(Killer == None || Killer == Killed)
 	{
-		if(WormholeMutator.Settings.bDisableSuicideReporting)
-			return;
-
+		bSuicide = true;
 		DeathMessage = PlayerSuicided;
 			
 		if (class<FellLava>(DamageType) != None)
@@ -119,7 +118,10 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
 
     // Send player death message
     Json.AddString("DeathMessage", DeathMessage);
-    EventGrid.SendEvent("player/died", Json);
+
+	if (bSuicide)
+		EventGrid.SendEvent("player/suicided", Json);
+	else EventGrid.SendEvent("player/died", Json);
 
     // Send player OUT
 	if (Killed.PlayerReplicationInfo != None && Killed.PlayerReplicationInfo.bOutOfLives)
