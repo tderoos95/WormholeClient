@@ -14,8 +14,6 @@ var globalconfig string Token;
 var globalconfig string ChatSpectatorName;
 var globalconfig array<MutWormhole.GameHandlerRegistration> GameHandlers;
 
-var globalconfig bool bDisableSuicideReporting;
-
 defaultproperties
 {
     bDebug=false
