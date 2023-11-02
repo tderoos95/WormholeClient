@@ -1,5 +1,2 @@
-# Nuke logging
-.nuke/temp/* 
-
-# PostBuild batch
-postbuild.bat
+/classes/
+/PostBuild.bat
