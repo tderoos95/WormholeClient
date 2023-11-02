@@ -9,6 +9,7 @@ class RemoteProcessingEventGridSubscriber extends WormholeEventGridSubscriber;
 
 // Internal
 const SuccessfullyAuthenticated  = "wormhole/internal/authenticated";
+const RelayConfig                = "wormhole/internal/relay/config";
 
 // Match events
 const MatchInfo                  = "match/info";
@@ -45,6 +46,12 @@ struct IQueuedEvent
 var array<IQueuedEvent> QueuedEvents;
 var bool bIsAuthenticated;
 // todo: bIsConnected
+
+//=============================================================================
+// Topic filtering
+//=============================================================================
+var array<string> FilterableTopics;
+var array<string> EnabledTopics;
 
 //=============================================================================
 
@@ -93,7 +100,40 @@ function EnqueueEvent(string Topic, JsonObject EventData)
 
 function SendEvent(string Topic, JsonObject EventData)
 {
+    if(ShouldFilterTopic(Topic))
+        return;
+
     WormholeConnection.SendEventData(Topic, EventData);
+}
+
+function bool ShouldFilterTopic(string Topic)
+{
+    local bool bFilterable;
+    local int i;
+
+    if(FilterableTopics.Length == 0)
+        return false;
+
+    for(i = 0; i < FilterableTopics.Length; i++)
+    {
+        if(FilterableTopics[i] ~= Topic)
+        {
+            bFilterable = true;
+            break;
+        }
+    }
+
+    if(!bFilterable)
+        return false;
+
+    // If the topic is filterable, check if it is enabled
+    for(i = 0; i < EnabledTopics.Length; i++)
+    {
+        if(EnabledTopics[i] ~= Topic)
+            return false;
+    }
+
+    return true;
 }
 
 defaultproperties
@@ -101,4 +141,5 @@ defaultproperties
     SubscriptionTopics(0)="match/"                           // All match related events
     SubscriptionTopics(1)="player/"                          // All player related events
     SubscriptionTopics(2)="wormhole/internal/authenticated"  // Authentication event
+    SubscriptionTopics(3)="wormhole/internal/relay/config"   // Relay configuration event
 }
