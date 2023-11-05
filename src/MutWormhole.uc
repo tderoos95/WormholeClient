@@ -2,7 +2,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "1.0.0-BETA";
+const RELEASE_VERSION = "1.0.2-BETA";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
@@ -358,6 +358,6 @@ function ReportTravel(string NextURL)
 
 defaultproperties
 {
-    // FriendlyName="Wormhole"
+    FriendlyName="Wormhole"
     Description="Wormhole is a mutator that reports everything that happens inside the server to the Wormhole server. The wormhole server is then able to report to Discord, or even a live feed on a website."
 }
