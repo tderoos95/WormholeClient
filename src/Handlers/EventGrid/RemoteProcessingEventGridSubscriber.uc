@@ -141,5 +141,5 @@ defaultproperties
     SubscriptionTopics(0)="match/"                           // All match related events
     SubscriptionTopics(1)="player/"                          // All player related events
     SubscriptionTopics(2)="wormhole/internal/authenticated"  // Authentication event
-    SubscriptionTopics(3)="wormhole/internal/relay/config"   // Relay configuration event
+    SubscriptionTopics(3)="wormhole/relay"                   // Relay events
 }
