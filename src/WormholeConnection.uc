@@ -35,7 +35,7 @@ function LoadSettings()
 
 function SpawnSubscribers()
 {
-	RemoteProcessingEventGridSubscriber = Spawn(class'RemoteProcessingEventGridSubscriber', self);
+	RemoteProcessingEventGridSubscriber = Spawn(Settings.RemoteProcessingEventGridSubscriberClass, self);
 	ConnectionEventGridSubscriber = Spawn(class'ConnectionEventGridSubscriber', self);
 	EventGrid = RemoteProcessingEventGridSubscriber.GetOrCreateEventGrid();
 }
