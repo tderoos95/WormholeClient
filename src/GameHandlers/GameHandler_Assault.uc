@@ -47,15 +47,11 @@ function HandleMatchEnded()
 {
     local JsonObject Json;
     local int TotalPlayers;
-    local int TotalSurvivors;
 
     Json = new class'JsonObject';
     Json.AddString("WinnerTeamName", TeamInfo(Assault.GameReplicationInfo.Winner).TeamName);
     Json.AddInt("CompletionTime", Level.Game.GameReplicationInfo.ElapsedTime);
-    Json.AddInt("TotalPlayers", TotalPlayers);
     EventGrid.SendEvent("match/assault/ended", Json);
-
-    Super.HandleMatchEnded();
 }
 
 defaultproperties
