@@ -23,7 +23,9 @@ defaultproperties
     ConnectTimeout=10
     ReconnectInterval=10
 
+    HostName="gateway.wormhole.unrealuniverse.net"
     Port=13000
 
     GameHandlers(0)=(GameTypeName="SkaarjPack.Invasion",GameHandler=class'GameHandler_Invasion');
+    GameHandlers(1)=(GameTypeName="UnrealGame.ASGameInfo",GameHandler=class'GameHandler_Assault');
 }
