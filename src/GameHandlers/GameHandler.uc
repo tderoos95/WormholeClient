@@ -95,6 +95,10 @@ function HandleMatchEnded()
     EventGrid.SendEvent("match/ended", None);
 }
 
+function HandleActorSpawned(Actor Other)
+{
+}
+
 defaultproperties {
     bIsCoopGame=false
 }
