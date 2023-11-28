@@ -2,7 +2,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "1.0.4-BETA";
+const RELEASE_VERSION = "1.0.5-BETA";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
@@ -173,6 +173,8 @@ function bool CheckReplacement(Actor Other, out byte bSuperRelevant)
         Players.Insert(0, 1);
         Players[0].PC = PlayerController(Other);
     }
+
+    GameHandler.HandleActorSpawned(Other);
     return Super.CheckReplacement(Other, bSuperRelevant);
 }
 
