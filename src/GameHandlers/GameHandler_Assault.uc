@@ -51,8 +51,7 @@ function HandleMatchEnded()
     Json.AddString("WinnerTeamName", TeamInfo(Assault.GameReplicationInfo.Winner).TeamName);
     Json.AddInt("CompletionTime", Level.Game.GameReplicationInfo.ElapsedTime);
     EventGrid.SendEvent("match/assault/ended", Json);
-
-    Super.HandleMatchEnded();
+    GameEndedListener.Destroy();
 }
 
 defaultproperties
