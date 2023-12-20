@@ -1,8 +1,13 @@
+//============================================================
+// Wormhole, 2021-2023
+// Made by Infy (https://discord.unrealuniverse.net)
+// Thanks to Ant from Death Warrant for various improvements.
+//============================================================
 class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "1.0.6 Beta";
+const RELEASE_VERSION = "1.0.7 Beta";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
@@ -194,7 +199,7 @@ function Timer()
 function MonitorPlayers()
 {
     local string Ip;
-    local int i, ColonIndex;
+    local int i;
     local JsonObject Json;
     local bool bIsGhost;
 
@@ -203,14 +208,12 @@ function MonitorPlayers()
         // Player disconnected
         if(Players[i].PC == None && Players[i].LastName != "")
         {
-            Json = new class'JsonObject';
-            Json.AddString("PlayerId", Players[i].PlayerIdHash);
-            Json.AddString("PlayerName", Players[i].LastName);
-            EventGrid.SendEvent("player/disconnected", Json);
+            ProcessPlayerDisconnected(i);
 
             // Remove player and correct array index
             Players.Remove(i, 1);
             i--;
+
             continue;
         }
 
@@ -228,18 +231,7 @@ function MonitorPlayers()
                 continue;
             }
 
-            ColonIndex = InStr(Ip, ":");
-            if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
-
-            Json = new class'JsonObject';
-            Json.AddString("Ip", Ip);
-            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
-            Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
-            EventGrid.SendEvent("player/connected", Json);
-
-            Players[i].PRI = Players[i].PC.PlayerReplicationInfo;
-            Players[i].LastName = Players[i].PC.GetHumanReadableName();
-            Players[i].PlayerIdHash = Players[i].PC.GetPlayerIdHash();
+            ProcessPlayerJoined(Ip, i);
             continue;
         }
 
@@ -269,6 +261,35 @@ function MonitorPlayers()
             Players[i].bIsSpectator = Players[i].PRI.bOnlySpectator;
         }
     }
+}
+
+function ProcessPlayerJoined(string Ip, int PlayerIndex)
+{
+    local JsonObject Json;
+    local int ColonIndex;
+
+    ColonIndex = InStr(Ip, ":");
+    if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
+
+    Json = new class'JsonObject';
+    Json.AddString("Ip", Ip);
+    Json.AddString("PlayerId", Players[PlayerIndex].PC.GetPlayerIdHash());
+    Json.AddString("PlayerName", Players[PlayerIndex].PC.GetHumanReadableName());
+    EventGrid.SendEvent("player/connected", Json);
+
+    Players[PlayerIndex].PRI = Players[PlayerIndex].PC.PlayerReplicationInfo;
+    Players[PlayerIndex].LastName = Players[PlayerIndex].PC.GetHumanReadableName();
+    Players[PlayerIndex].PlayerIdHash = Players[PlayerIndex].PC.GetPlayerIdHash();
+}
+
+function ProcessPlayerDisconnected(int PlayerIndex)
+{
+    local JsonObject Json;
+
+    Json = new class'JsonObject';
+    Json.AddString("PlayerId", Players[PlayerIndex].PlayerIdHash);
+    Json.AddString("PlayerName", Players[PlayerIndex].LastName);
+    EventGrid.SendEvent("player/disconnected", Json);
 }
 
 function bool StartsWith(string String, string Prefix)
