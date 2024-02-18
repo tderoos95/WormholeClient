@@ -26,17 +26,22 @@ function InitPlayerReplicationInfo()
 
 function TeamMessage(PlayerReplicationInfo PRI, coerce string Message, name Type)
 {
+	if(Type == 'Say' && PRI != None && PRI != PlayerReplicationInfo && WormholeMutator != None)
+		HandleChat(PRI, Message, Type);
+}
+
+function HandleChat(PlayerReplicationInfo PRI, coerce string Message, name Type)
+{
 	local JsonObject Json;
 
-	if(Type == 'Say' && PRI != None && PRI != PlayerReplicationInfo && WormholeMutator != None)
-	{
-		Json = new class'JsonObject';
-		Json.AddString("PlayerId", PlayerController(PRI.Owner).GetPlayerIdHash());
-		Json.AddString("PlayerName", PRI.PlayerName);
-		Json.AddString("Message", Message);
+	if(WormholeMutator.PreventReportChat(PRI, Message, Type))
+		return;
 
-		EventGrid.SendEvent("player/chat", Json);
-	}
+	Json = new class'JsonObject';
+	Json.AddString("PlayerId", PlayerController(PRI.Owner).GetPlayerIdHash());
+	Json.AddString("PlayerName", PRI.PlayerName);
+	Json.AddString("Message", Message);
+	EventGrid.SendEvent("player/chat", Json);
 }
 
 defaultproperties

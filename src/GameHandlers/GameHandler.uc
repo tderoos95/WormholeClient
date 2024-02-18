@@ -14,7 +14,7 @@ var bool bGameEnded;
 
 var TriggerEventListener GameEndedListener;
 
-public function PostInitialize()
+public function OnInitialize()
 {
     log("Initializing GameHandler...", 'Wormhole');
     SubscribeToGameInfoEvents();
