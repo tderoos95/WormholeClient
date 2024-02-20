@@ -31,6 +31,4 @@ defaultproperties
     RemoteProcessingEventGridSubscriberClass=class'Wormhole.RemoteProcessingEventGridSubscriber'
     GameHandlers(0)=(GameTypeName="SkaarjPack.Invasion",GameHandler=class'GameHandler_Invasion');
     GameHandlers(1)=(GameTypeName="UnrealGame.ASGameInfo",GameHandler=class'GameHandler_Assault');
-    Plugins(0)=class'Plugin_Greeter'
-    Plugins(1)=class'Plugin_PrivacyFilter'
 }
