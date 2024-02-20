@@ -33,14 +33,17 @@ function TeamMessage(PlayerReplicationInfo PRI, coerce string Message, name Type
 function HandleChat(PlayerReplicationInfo PRI, coerce string Message, name Type)
 {
 	local JsonObject Json;
+	local string FormattedMessage;
 
 	if(WormholeMutator.PreventReportChat(PRI, Message, Type))
 		return;
 
+	FormattedMessage = WormholeMutator.FormatChatMessage(PRI, Message, Type);
+
 	Json = new class'JsonObject';
 	Json.AddString("PlayerId", PlayerController(PRI.Owner).GetPlayerIdHash());
 	Json.AddString("PlayerName", PRI.PlayerName);
-	Json.AddString("Message", Message);
+	Json.AddString("Message", FormattedMessage);
 	EventGrid.SendEvent("player/chat", Json);
 }
 
