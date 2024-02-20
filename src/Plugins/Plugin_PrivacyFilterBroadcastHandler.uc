@@ -6,11 +6,17 @@ var color DiscordChatColor;
 function Broadcast(Actor Sender, coerce string Msg, optional name Type)
 {
     local string ChannelMsg;
+    local string UserMsg;
 
     if(Left(Msg, Len(DiscordPrefix)) ~= DiscordPrefix)
     {
         ChannelMsg = GetChatMessagePrefix();
-        ChannelMsg @= Mid(Msg, Len(DiscordPrefix));
+        UserMsg = Mid(Msg, Len(DiscordPrefix));
+
+        // Trim leading spaces
+        while(Left(UserMsg, 1) == " ")
+            UserMsg = Mid(UserMsg, 1);
+        ChannelMsg @= UserMsg;
     }
     else ChannelMsg = Msg;
 
