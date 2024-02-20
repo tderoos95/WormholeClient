@@ -25,7 +25,9 @@ function bool PreventReportChat(PlayerReplicationInfo PRI, out string Message, n
 {
     local string Prefix;
    
-    Prefix = class'Plugin_PrivacyFilterBroadcastHandler'.static.GetChatMessagePrefix();
+    if(EnableHudColor)
+        Prefix = class'Plugin_PrivacyFilterBroadcastHandler'.static.GetChatMessagePrefix();
+    else Prefix = DiscordPrefix;
 
     if(Left(Message, Len(Prefix)) ~= Prefix)
         return false;
@@ -38,13 +40,16 @@ function string FormatChatMessage(PlayerReplicationInfo PRI, coerce string Messa
     local string NewMessage;
     local int PrefixLength;
 
-    Prefix = class'Plugin_PrivacyFilterBroadcastHandler'.static.GetChatMessagePrefix();
+    if(EnableHudColor)
+        Prefix = class'Plugin_PrivacyFilterBroadcastHandler'.static.GetChatMessagePrefix();
+    else Prefix = DiscordPrefix;
+
     PrefixLength = Len(class'Utils'.static.StripColorCodes(Prefix));
 
     if(Left(Message, Len(Prefix)) == Prefix)
     {
         NewMessage = class'Utils'.static.StripColorCodes(Message);
-        NewMessage = Mid(NewMessage, PrefixLength+1); // +1 for space
+        NewMessage = Mid(NewMessage, PrefixLength); // +1 for space
 
         // Trim leading spaces
         while(Left(NewMessage, 1) == " ")
@@ -57,6 +62,6 @@ function string FormatChatMessage(PlayerReplicationInfo PRI, coerce string Messa
 }
 
 defaultproperties {
-    DiscordPrefix="!d"
+    DiscordPrefix="D:"
     EnableHudColor=True
 }
