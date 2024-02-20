@@ -95,8 +95,13 @@ function PostBeginPlay()
     // 
     log("Spawning plugins...");
     Plugins.Insert(0, 1);
-    Plugins[0] = Spawn(class'PrivacyFilterPlugin');
+    Plugins[0] = Spawn(class'Plugin_PrivacyFilter');
     Plugins[0].EventGrid = EventGrid;
+    Plugins[0].WormholeMutator = self;
+    Plugins.Insert(0, 1);
+    Plugins[0] = Spawn(class'Plugin_Greeter');
+    Plugins[0].EventGrid = EventGrid;
+    Plugins[0].WormholeMutator = self;
 
     if(Len(Plugins[0].PluginName) > 0 && Plugins[0].HasRemoteSettings)
         Plugins[0].PluginSettings = PluginConfig.GetJson(Plugins[0].PluginName);
@@ -137,13 +142,9 @@ function Mutate(string Command, PlayerController PC)
 {
     local string GivenIp;
     local bool bAuthorized;
-    local int i;
 
     if(NextMutator != None)
         NextMutator.Mutate(Command, PC);
-
-    for(i=0; i < Plugins.Length; i++)
-        Plugins[i].Mutate(Command, PC);
     
     bAuthorized = Settings.bDebug && 
     (
