@@ -18,7 +18,7 @@ public function OnInitialize()
 {
     log("Initializing GameHandler...", 'Wormhole');
     SubscribeToGameInfoEvents();
-    log("GameHandler initialized", 'Wormhole');
+    log("GameHandler initialized.", 'Wormhole');
     PrepareSendMatchInfo();
 }
 
@@ -75,7 +75,7 @@ public function SendMatchInfo()
 }
 
 public function MonitorGame()
-{}
+{ }
 
 public function HandleMatchStarted()
 {
@@ -96,8 +96,7 @@ function HandleMatchEnded()
 }
 
 function HandleActorSpawned(Actor Other)
-{
-}
+{ }
 
 defaultproperties {
     bIsCoopGame=false

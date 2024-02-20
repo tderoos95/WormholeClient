@@ -1,48 +1,57 @@
-class Plugin_PrivacyFilter extends WormholePlugin;
+class Plugin_PrivacyFilter extends WormholePlugin
+    config(Wormhole);
 
-var string Prefix;
-var bool EnableColoredPrefix;
+var config string DiscordPrefix;
+var config bool EnableHudColor;
 
 function OnInitialize()
 {
-    local string NewPrefix;
-    local bool NewEnableColoredPrefix;
+    local Plugin_PrivacyFilterBroadcastHandler NewBroadcastHandler;
+    local BroadcastHandler OldBroadcastHandler;
 
-    log("Plugin_PrivacyFilter: Initializing plugin");
-
-    if(PluginSettings == None)
+    if(EnableHudColor)
     {
-        log("Plugin_PrivacyFilter: PluginSettings is None");
-        return;
+        log("Plugin_PrivacyFilter: Spawning new BroadcastHandler with HUD color enabled");
+        NewBroadcastHandler = Spawn(class'Plugin_PrivacyFilterBroadcastHandler');
+        NewBroadcastHandler.DiscordPrefix = DiscordPrefix;
+        OldBroadcastHandler = Level.Game.BroadcastHandler;
+        Level.Game.BroadcastHandler = NewBroadcastHandler;
+        OldBroadcastHandler.Destroy();
+        log("Plugin_PrivacyFilter: BroadcastHandler replaced");
     }
-
-    NewPrefix = PluginSettings.GetString("Prefix");
-
-    if(NewPrefix != "")
-    {
-        log("Plugin_PrivacyFilter: Loading Prefix from settings: " $ NewPrefix);
-        Prefix = NewPrefix;
-    }
-
-    if(PluginSettings.HasValue("EnableColoredPrefix"))
-    {
-        NewEnableColoredPrefix = PluginSettings.GetBool("EnableColoredPrefix");
-        log("Plugin_PrivacyFilter: Loading EnableColoredPrefix from settings: " $ NewEnableColoredPrefix);
-        EnableColoredPrefix = NewEnableColoredPrefix;
-    }
-
-    log("Plugin_PrivacyFilter: Plugin initialized");
 }
 
-function function bool PreventReportChat(PlayerReplicationInfo PRI, coerce string Message, name Type)
+function bool PreventReportChat(PlayerReplicationInfo PRI, out string Message, name Type)
 {
-    if(Left(Message, 2) ~= Prefix)
+    local string Prefix;
+   
+    Prefix = class'Plugin_PrivacyFilterBroadcastHandler'.static.GetChatMessagePrefix();
+
+    if(Left(Message, Len(Prefix)) ~= Prefix)
         return false;
     return true;
 }
 
+function string FormatChatMessage(PlayerReplicationInfo PRI, coerce string Message, name Type)
+{
+    local string Prefix;
+    local string NewMessage;
+    local int PrefixLength;
+
+    Prefix = class'Plugin_PrivacyFilterBroadcastHandler'.static.GetChatMessagePrefix();
+    PrefixLength = Len(class'Utils'.static.StripColorCodes(Prefix));
+
+    if(Left(Message, Len(Prefix)) == Prefix)
+    {
+        NewMessage = class'Utils'.static.StripColorCodes(Message);
+        NewMessage = Mid(NewMessage, PrefixLength+1); // +1 for space
+        return NewMessage;
+    }
+
+    return Message;
+}
+
 defaultproperties {
-    PluginName="PrivacyFilter"
-    Prefix="!d"
-    EnableColoredPrefix=False
+    DiscordPrefix="!d"
+    EnableHudColor=True
 }

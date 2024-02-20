@@ -32,7 +32,6 @@ var GameHandler GameHandler;
 // Wormhole Mod Support
 //=========================================================
 var array<WormholePlugin> Plugins;
-var JsonObject PluginConfig;
 
 //=========================================================
 // Event management
@@ -87,29 +86,9 @@ function AddGameRules()
 
 function PostBeginPlay()
 {
-    local int i;
-
     Super.PostBeginPlay();
     AddGameHandler(Level.Game.Class);
-
-    // 
-    log("Spawning plugins...");
-    Plugins.Insert(0, 1);
-    Plugins[0] = Spawn(class'Plugin_PrivacyFilter');
-    Plugins[0].EventGrid = EventGrid;
-    Plugins[0].WormholeMutator = self;
-    Plugins.Insert(0, 1);
-    Plugins[0] = Spawn(class'Plugin_Greeter');
-    Plugins[0].EventGrid = EventGrid;
-    Plugins[0].WormholeMutator = self;
-
-    if(Len(Plugins[0].PluginName) > 0 && Plugins[0].HasRemoteSettings)
-        Plugins[0].PluginSettings = PluginConfig.GetJson(Plugins[0].PluginName);
-
-    for(i=0; i < Plugins.Length; i++)
-        Plugins[i].OnInitialize();
-    //
-
+    IntializePlugins();
 }
 
 function AddGameHandler(class<GameInfo> GameType)
@@ -124,8 +103,8 @@ function AddGameHandler(class<GameInfo> GameType)
     {
         if (Settings.GameHandlers[i].GameTypeName ~= GameTypeName)
         {
-            log("Found game handler '" $ string(Settings.GameHandlers[i].GameHandler.Class) $ "' for " $ GameTypeName $ "!");
             GameHandler = Spawn(Settings.GameHandlers[i].GameHandler, self);
+            log("Found game handler '" $ GameHandler.class $ "' for " $ GameTypeName $ "!");
             GameHandler.EventGrid = EventGrid;
             GameHandler.OnInitialize();
             return;
@@ -136,6 +115,29 @@ function AddGameHandler(class<GameInfo> GameType)
     GameHandler = Spawn(class'GameHandler', self);
     GameHandler.EventGrid = EventGrid;
     GameHandler.OnInitialize();
+}
+
+function IntializePlugins()
+{
+    local int i;
+    local WormholePlugin Plugin;
+    
+    log("Initializing plugins...", 'Wormhole');
+    
+    for(i=0; i < Settings.Plugins.Length; i++)
+    {
+        Plugin = Spawn(Settings.Plugins[i]);
+        log("Initializing plugin " $ Plugin.Class $ "...", 'Wormhole');
+        Plugin.EventGrid = EventGrid;
+        Plugin.WormholeMutator = self;
+
+        Plugins.Insert(0, 1);
+        Plugins[0] = Plugin;
+        Plugins[0].OnInitialize();
+        log("Plugin " $ Plugin.Class $ " initialized", 'Wormhole');
+    }
+
+    log("Plugins initialized.", 'Wormhole');
 }
 
 function Mutate(string Command, PlayerController PC)
@@ -422,8 +424,27 @@ final function bool PreventReportChat(PlayerReplicationInfo PRI, coerce string M
     for(i=0; i < Plugins.Length; i++)
     {
         if(Plugins[i].PreventReportChat(PRI, Message, Type))
+        {
+            log("Chat message should be prevented", 'Wormhole');
             return true;
+        }
     }
+
+    return false;
+}
+
+final function string FormatChatMessage(PlayerReplicationInfo PRI, coerce string Message, name Type)
+{
+    local int i;
+    local string FormattedMessage;
+
+    FormattedMessage = Message;
+
+    log("Formatting chat message for " $ PRI.PlayerName, 'Wormhole');
+
+    for(i=0; i < Plugins.Length; i++)
+        FormattedMessage = Plugins[i].FormatChatMessage(PRI, FormattedMessage, Type);
+    return FormattedMessage;
 }
 
 defaultproperties
