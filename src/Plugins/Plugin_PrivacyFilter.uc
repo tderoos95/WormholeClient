@@ -45,6 +45,11 @@ function string FormatChatMessage(PlayerReplicationInfo PRI, coerce string Messa
     {
         NewMessage = class'Utils'.static.StripColorCodes(Message);
         NewMessage = Mid(NewMessage, PrefixLength+1); // +1 for space
+
+        // Trim leading spaces
+        while(Left(NewMessage, 1) == " ")
+            NewMessage = Mid(NewMessage, 1);
+
         return NewMessage;
     }
 
