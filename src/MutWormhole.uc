@@ -424,10 +424,7 @@ final function bool PreventReportChat(PlayerReplicationInfo PRI, coerce string M
     for(i=0; i < Plugins.Length; i++)
     {
         if(Plugins[i].PreventReportChat(PRI, Message, Type))
-        {
-            log("Chat message should be prevented", 'Wormhole');
             return true;
-        }
     }
 
     return false;
@@ -439,8 +436,6 @@ final function string FormatChatMessage(PlayerReplicationInfo PRI, coerce string
     local string FormattedMessage;
 
     FormattedMessage = Message;
-
-    log("Formatting chat message for " $ PRI.PlayerName, 'Wormhole');
 
     for(i=0; i < Plugins.Length; i++)
         FormattedMessage = Plugins[i].FormatChatMessage(PRI, FormattedMessage, Type);
