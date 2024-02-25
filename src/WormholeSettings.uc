@@ -14,6 +14,7 @@ var globalconfig string Token;
 var globalconfig string ChatSpectatorName;
 var globalconfig class<RemoteProcessingEventGridSubscriber> RemoteProcessingEventGridSubscriberClass;
 var globalconfig array<MutWormhole.GameHandlerRegistration> GameHandlers;
+var globalconfig array<class<WormholePlugin> > Plugins;
 
 defaultproperties
 {
