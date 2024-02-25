@@ -7,7 +7,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "1.1.7 Beta";
+const RELEASE_VERSION = "1.1.8 Beta";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
