@@ -62,6 +62,6 @@ function string FormatChatMessage(PlayerReplicationInfo PRI, coerce string Messa
 }
 
 defaultproperties {
-    DiscordPrefix="D:"
-    EnableHudColor=True
+    DiscordPrefix="!d"
+    EnableHudColor=False
 }
