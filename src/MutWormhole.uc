@@ -47,6 +47,7 @@ struct IPlayer {
     var PlayerController PC;
     var PlayerReplicationInfo PRI;
     var bool bIsSpectator;
+    var bool bIsAdmin;
     var TeamInfo LastTeam;
     var string LastName;
     var string PlayerIdHash;
@@ -275,6 +276,20 @@ function MonitorPlayers()
             EventGrid.SendEvent("player/changedname", Json);
 
             Players[i].LastName = Players[i].PRI.PlayerName;
+        }
+
+        // Check if player has logged in/out as admin
+        if(Players[i].bIsAdmin != Players[i].PRI.bAdmin)
+        {
+            Json = new class'JsonObject';
+            Json.AddString("PlayerName", Players[i].PRI.PlayerName);
+            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
+
+            if(Players[i].PRI.bAdmin)
+                EventGrid.SendEvent("player/admin/login", Json);
+            else EventGrid.SendEvent("player/admin/logout", Json);
+                
+            Players[i].bIsAdmin = Players[i].PRI.bAdmin;
         }
 
         // Check if player has changed teams or became a spectator
