@@ -35,10 +35,10 @@ function OnObjectiveCompleted()
     local JsonObject Json;
 
     Json = new class'JsonObject';
-    Json.AddString("CompletedObjectiveName", CompletedObjective.Objective_Info_Attacker);
+    Json.AddString("CompletedObjectiveName", class'Utils'.static.StripColorCodes(CompletedObjective.Objective_Info_Attacker));
 
     if (CompletedObjective.Instigator != None && CompletedObjective.Instigator.PlayerReplicationInfo != None)
-        Json.AddString("ObjectiveInstigator", CompletedObjective.Instigator.PlayerReplicationInfo.PlayerName);
+        Json.AddString("ObjectiveInstigator", class'Utils'.static.StripColorCodes(CompletedObjective.Instigator.PlayerReplicationInfo.PlayerName));
 
     EventGrid.SendEvent("match/assault/objective/completed", Json);
 }
