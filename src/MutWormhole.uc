@@ -270,8 +270,8 @@ function MonitorPlayers()
         if(Players[i].PRI.PlayerName != Players[i].LastName)
         {
             Json = new class'JsonObject';
-            Json.AddString("LastName", class'Utils'.static.StripColorCodes(Players[i].LastName));
-            Json.AddString("NewName", class'Utils'.static.StripColorCodes(Players[i].PRI.PlayerName));
+            Json.AddString("LastName", class'Utils'.static.StripIllegalCharacters(Players[i].LastName));
+            Json.AddString("NewName", class'Utils'.static.StripIllegalCharacters(Players[i].PRI.PlayerName));
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
             EventGrid.SendEvent("player/changedname", Json);
             Players[i].LastName = Players[i].PRI.PlayerName;
@@ -281,7 +281,7 @@ function MonitorPlayers()
         if(Players[i].bIsAdmin != Players[i].PRI.bAdmin)
         {
             Json = new class'JsonObject';
-            Json.AddString("PlayerName", class'Utils'.static.StripColorCodes(Players[i].PRI.PlayerName));
+            Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Players[i].PRI.PlayerName));
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
 
             if(Players[i].PRI.bAdmin)
@@ -296,7 +296,7 @@ function MonitorPlayers()
         {
             Json = new class'JsonObject';
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
-            Json.AddString("PlayerName", class'Utils'.static.StripColorCodes(Players[i].PC.GetHumanReadableName()));
+            Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Players[i].PC.GetHumanReadableName()));
             Json.AddInt("Team", Players[i].PRI.Team.TeamIndex);
             Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
 
@@ -319,7 +319,7 @@ function ProcessPlayerConnected(string Ip, int PlayerIndex)
     Json = new class'JsonObject';
     Json.AddString("Ip", Ip);
     Json.AddString("PlayerId", Players[PlayerIndex].PC.GetPlayerIdHash());
-    Json.AddString("PlayerName", class'Utils'.static.StripColorCodes(Players[PlayerIndex].PC.GetHumanReadableName()));
+    Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Players[PlayerIndex].PC.GetHumanReadableName()));
     EventGrid.SendEvent("player/connected", Json);
 
     Players[PlayerIndex].PRI = Players[PlayerIndex].PC.PlayerReplicationInfo;
@@ -337,7 +337,7 @@ function ProcessPlayerDisconnected(int PlayerIndex)
 
     Json = new class'JsonObject';
     Json.AddString("PlayerId", Players[PlayerIndex].PlayerIdHash);
-    Json.AddString("PlayerName", class'Utils'.static.StripColorCodes(Players[PlayerIndex].LastName));
+    Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Players[PlayerIndex].LastName));
     EventGrid.SendEvent("player/disconnected", Json);
 
     for(i=0; i < Plugins.Length; i++)
@@ -426,8 +426,8 @@ function ReportTravel(string NextURL)
 	}
 
     Json = new class'JsonObject';
-    Json.AddString("NextGame", class'Utils'.static.StripColorCodes(NextGame));
-    Json.AddString("NextMap", class'Utils'.static.StripColorCodes(NextMap));
+    Json.AddString("NextGame", class'Utils'.static.StripIllegalCharacters(NextGame));
+    Json.AddString("NextMap", class'Utils'.static.StripIllegalCharacters(NextMap));
     EventGrid.SendEvent("match/mapswitch", Json);
 }
 
