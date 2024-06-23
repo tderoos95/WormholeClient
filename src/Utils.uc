@@ -3,34 +3,72 @@ class Utils extends Object;
 // Method below made by Wormbo (C) 2005
 static final function string StripIllegalCharacters(string Input)
 {
-     local int i;
+    local int i;
     local string Text;
-    local string Result;
-    local string Part;
+    local bool isIllegal;
+    local int CurrentCharCode;
+    local string CurrentChar, SanitizedInput;
 
-    // Remove color codes
-    i = InStr(Input, Chr(27));
+    Log("* Before stripping illegal characters");
+    OutputChrCodes(Input);
 
-    while (i != -1)
-    {  
-        Text = Text $ Left(Input, i);
-        Input = Mid(Input, i + 4);  
-        i = InStr(Input, Chr(27));
-    }
-
-    Text = Text $ Input;
-
-    // Remove 'ç' and 'Ç' from the Text
-    for (i = 1; i <= Len(Text); i++)
+    for(i = 0; i < Len(Input); i++) 
     {
-        Part = Mid(Text, i, 1);
-        if (Part != "ç" && Part != "Ç")
+        CurrentChar = Mid(Input, i, 1);
+        CurrentCharCode = GetChrCode(CurrentChar);
+        isIllegal = CurrentCharCode == -1 || CurrentCharCode == 1;
+
+        if(!isIllegal)
         {
-            Result = Result $ Part;
+            SanitizedInput = SanitizedInput $ CurrentChar;
         }
     }
 
-    return Result;
+    Log("* After stripping illegal characters");
+    OutputChrCodes(SanitizedInput);
+
+    i = InStr(SanitizedInput, Chr(27));
+    while(i != -1)
+    {
+        Text = Text $ Left(SanitizedInput, i);
+        SanitizedInput = Mid(SanitizedInput, i + 4);  
+        i = InStr(SanitizedInput, Chr(27));
+    }
+
+    return Text $ SanitizedInput;
+}
+
+static final function OutputChrCodes(string Text)
+{
+    local string CurrentChar;
+    local int i;
+
+    Log("--------------------");
+    Log("* Dissecting string: " $ Text);
+
+    for(i = 0; i < Len(Text); i++)
+    {
+        CurrentChar = Mid(Text, i, 1);
+        Log("*" @ CurrentChar $ ": " $ "Chr(" $ GetChrCode(CurrentChar) $ ")");
+    }
+
+
+    Log("--------------------");
+}
+
+static final function int GetChrCode(string Char)
+{
+    local int i;
+
+    for(i = 0; i < 255; i++)
+    {
+        if(Char == Chr(i))
+        {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 final simulated static function string MakeColorCode(Color NewColor)
