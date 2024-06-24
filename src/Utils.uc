@@ -6,7 +6,6 @@ static final function string StripIllegalCharacters(string Input)
     local string CurrentChar, SanitizedInput;
     local int CurrentCharCode;
     local bool bIllegalCharacter;
-    local string Text;
     local int i;
 
     for(i = 0; i < Len(Input); i++)
@@ -20,16 +19,8 @@ static final function string StripIllegalCharacters(string Input)
             SanitizedInput = SanitizedInput $ CurrentChar;
         }
     }
-
-    i = InStr(SanitizedInput, Chr(27));
-    while(i != -1)
-    {
-        Text = Text $ Left(SanitizedInput, i);
-        SanitizedInput = Mid(SanitizedInput, i + 4);  
-        i = InStr(SanitizedInput, Chr(27));
-    }
-
-    return Text $ SanitizedInput;
+    
+    return SanitizedInput;
 }
 
 static final function int GetChrCode(string Char)
