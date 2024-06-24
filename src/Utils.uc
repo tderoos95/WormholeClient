@@ -1,6 +1,6 @@
 class Utils extends Object;
 
-// Method below made by Wormbo (C) 2005
+// Strip illegal characters that break JSON parsing
 static final function string StripIllegalCharacters(string Input)
 {
     local int i;
@@ -16,7 +16,7 @@ static final function string StripIllegalCharacters(string Input)
     {
         CurrentChar = Mid(Input, i, 1);
         CurrentCharCode = GetChrCode(CurrentChar);
-        bIllegalCharacter = CurrentCharCode <= 32;
+        bIllegalCharacter = CurrentCharCode < 32;
 
         if(!bIllegalCharacter)
         {

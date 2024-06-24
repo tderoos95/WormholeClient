@@ -63,8 +63,6 @@ function Timer()
 public function SendMatchInfo()
 {
     local JsonObject Json;
-    local int i;
-    local string FakeName;
 
     Json = new class'JsonObject';
     Json.AddString("ServerIp", Level.GetAddressURL());
