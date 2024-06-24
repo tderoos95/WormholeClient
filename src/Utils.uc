@@ -9,9 +9,6 @@ static final function string StripIllegalCharacters(string Input)
     local int CurrentCharCode;
     local string CurrentChar, SanitizedInput;
 
-    Log("* Before stripping illegal characters");
-    OutputChrCodes(Input);
-
     for(i = 0; i < Len(Input); i++)
     {
         CurrentChar = Mid(Input, i, 1);
@@ -24,9 +21,6 @@ static final function string StripIllegalCharacters(string Input)
         }
     }
 
-    Log("* After stripping illegal characters");
-    OutputChrCodes(SanitizedInput);
-
     i = InStr(SanitizedInput, Chr(27));
     while(i != -1)
     {
@@ -36,24 +30,6 @@ static final function string StripIllegalCharacters(string Input)
     }
 
     return Text $ SanitizedInput;
-}
-
-static final function OutputChrCodes(string Text)
-{
-    local string CurrentChar;
-    local int i;
-
-    Log("--------------------");
-    Log("* Dissecting string: " $ Text);
-
-    for(i = 0; i < Len(Text); i++)
-    {
-        CurrentChar = Mid(Text, i, 1);
-        Log("*" @ CurrentChar $ ": " $ "Chr(" $ GetChrCode(CurrentChar) $ ")");
-    }
-
-
-    Log("--------------------");
 }
 
 static final function int GetChrCode(string Char)
