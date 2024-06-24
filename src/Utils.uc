@@ -3,11 +3,11 @@ class Utils extends Object;
 // Strip illegal characters that break JSON parsing
 static final function string StripIllegalCharacters(string Input)
 {
-    local int i;
-    local string Text;
-    local bool bIllegalCharacter;
-    local int CurrentCharCode;
     local string CurrentChar, SanitizedInput;
+    local int CurrentCharCode;
+    local bool bIllegalCharacter;
+    local string Text;
+    local int i;
 
     for(i = 0; i < Len(Input); i++)
     {
