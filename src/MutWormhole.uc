@@ -1,5 +1,5 @@
 //============================================================
-// Wormhole, 2021-2023
+// Wormhole, 2021-2024
 // Made by Infy (https://discord.unrealuniverse.net)
 // Thanks to Ant from Death Warrant for various improvements.
 //============================================================
@@ -7,7 +7,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "1.2.1 Beta";
+const RELEASE_VERSION = "1.3.0 Beta";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
