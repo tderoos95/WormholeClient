@@ -60,7 +60,7 @@ static final function int GetChrCode(string Char)
 {
     local int i;
 
-    for(i = 0; i < 255; i++)
+    for(i = 0; i < 256; i++)
     {
         if(Char == Chr(i))
         {

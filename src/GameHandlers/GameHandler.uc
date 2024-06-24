@@ -63,10 +63,20 @@ function Timer()
 public function SendMatchInfo()
 {
     local JsonObject Json;
+    local int i;
+    local string FakeName;
 
     Json = new class'JsonObject';
     Json.AddString("ServerIp", Level.GetAddressURL());
-    Json.AddString("ServerName", class'Utils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
+    // Json.AddString("ServerName", class'Utils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
+
+
+    for(i=0;i<1024;i++)
+    {
+        FakeName $= Chr(i);
+    }
+
+    Json.AddString("ServerName", class'Utils'.static.StripIllegalCharacters(FakeName));
     Json.AddString("GameType", class'Utils'.static.StripIllegalCharacters(Level.Game.GameName));
     Json.AddString("MapName", class'Utils'.static.StripIllegalCharacters(Level.Title));
     Json.AddBool("IsTeamGame", Level.Game.bTeamGame);
