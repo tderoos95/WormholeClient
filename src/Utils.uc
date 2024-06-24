@@ -5,20 +5,20 @@ static final function string StripIllegalCharacters(string Input)
 {
     local int i;
     local string Text;
-    local bool isIllegal;
+    local bool bIllegalCharacter;
     local int CurrentCharCode;
     local string CurrentChar, SanitizedInput;
 
     Log("* Before stripping illegal characters");
     OutputChrCodes(Input);
 
-    for(i = 0; i < Len(Input); i++) 
+    for(i = 0; i < Len(Input); i++)
     {
         CurrentChar = Mid(Input, i, 1);
         CurrentCharCode = GetChrCode(CurrentChar);
-        isIllegal = CurrentCharCode == -1 || CurrentCharCode == 1;
+        bIllegalCharacter = CurrentCharCode <= 32;
 
-        if(!isIllegal)
+        if(!bIllegalCharacter)
         {
             SanitizedInput = SanitizedInput $ CurrentChar;
         }
