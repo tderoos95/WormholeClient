@@ -1,5 +1,5 @@
 //============================================================
-// Wormhole, 2021-2023
+// Wormhole, 2021-2024
 // Made by Infy (https://discord.unrealuniverse.net)
 // Thanks to Ant from Death Warrant for various improvements.
 //============================================================
@@ -7,7 +7,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "1.2.1 Beta";
+const RELEASE_VERSION = "1.3.0 Beta";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
@@ -270,11 +270,10 @@ function MonitorPlayers()
         if(Players[i].PRI.PlayerName != Players[i].LastName)
         {
             Json = new class'JsonObject';
-            Json.AddString("LastName", Players[i].LastName);
-            Json.AddString("NewName", Players[i].PRI.PlayerName);
+            Json.AddString("LastName", class'Utils'.static.StripIllegalCharacters(Players[i].LastName));
+            Json.AddString("NewName", class'Utils'.static.StripIllegalCharacters(Players[i].PRI.PlayerName));
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
             EventGrid.SendEvent("player/changedname", Json);
-
             Players[i].LastName = Players[i].PRI.PlayerName;
         }
 
@@ -282,7 +281,7 @@ function MonitorPlayers()
         if(Players[i].bIsAdmin != Players[i].PRI.bAdmin)
         {
             Json = new class'JsonObject';
-            Json.AddString("PlayerName", Players[i].PRI.PlayerName);
+            Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Players[i].PRI.PlayerName));
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
 
             if(Players[i].PRI.bAdmin)
@@ -297,7 +296,7 @@ function MonitorPlayers()
         {
             Json = new class'JsonObject';
             Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
-            Json.AddString("PlayerName", Players[i].PC.GetHumanReadableName());
+            Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Players[i].PC.GetHumanReadableName()));
             Json.AddInt("Team", Players[i].PRI.Team.TeamIndex);
             Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
 
@@ -320,7 +319,7 @@ function ProcessPlayerConnected(string Ip, int PlayerIndex)
     Json = new class'JsonObject';
     Json.AddString("Ip", Ip);
     Json.AddString("PlayerId", Players[PlayerIndex].PC.GetPlayerIdHash());
-    Json.AddString("PlayerName", Players[PlayerIndex].PC.GetHumanReadableName());
+    Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Players[PlayerIndex].PC.GetHumanReadableName()));
     EventGrid.SendEvent("player/connected", Json);
 
     Players[PlayerIndex].PRI = Players[PlayerIndex].PC.PlayerReplicationInfo;
@@ -338,7 +337,7 @@ function ProcessPlayerDisconnected(int PlayerIndex)
 
     Json = new class'JsonObject';
     Json.AddString("PlayerId", Players[PlayerIndex].PlayerIdHash);
-    Json.AddString("PlayerName", Players[PlayerIndex].LastName);
+    Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Players[PlayerIndex].LastName));
     EventGrid.SendEvent("player/disconnected", Json);
 
     for(i=0; i < Plugins.Length; i++)
@@ -427,8 +426,8 @@ function ReportTravel(string NextURL)
 	}
 
     Json = new class'JsonObject';
-    Json.AddString("NextGame", NextGame);
-    Json.AddString("NextMap", NextMap);
+    Json.AddString("NextGame", class'Utils'.static.StripIllegalCharacters(NextGame));
+    Json.AddString("NextMap", class'Utils'.static.StripIllegalCharacters(NextMap));
     EventGrid.SendEvent("match/mapswitch", Json);
 }
 
