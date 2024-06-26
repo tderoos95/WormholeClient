@@ -262,7 +262,7 @@ state AwaitingHandshake
 
 		// Determine if we should prevent garbage collection for this json object
 		bGarbageCollection = !Json.GetBool("Wormhole.ManualDisposal");
-		json.RemoveValue("Wormhole.ManualDisposal");
+		Json.RemoveValue("Wormhole.ManualDisposal");
 
 		Data = Json.ToString();
 		Data $= EndOfMessageChar;
@@ -336,7 +336,6 @@ state AwaitingAuthentication // HandshakePerformed
 
 		Json = new class'JsonObject';
 		Json.AddString("Token", Settings.Token);
-		Json.AddString("GameServerName", "Unreal Universe"); // todo
 		SendEventData("wormhole/authentication/request", Json);
 	}
 

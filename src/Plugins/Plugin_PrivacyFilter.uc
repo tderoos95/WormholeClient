@@ -44,11 +44,11 @@ function string FormatChatMessage(PlayerReplicationInfo PRI, coerce string Messa
         Prefix = class'Plugin_PrivacyFilterBroadcastHandler'.static.GetChatMessagePrefix();
     else Prefix = DiscordPrefix;
 
-    PrefixLength = Len(class'Utils'.static.StripColorCodes(Prefix));
+    PrefixLength = Len(class'Utils'.static.StripIllegalCharacters(Prefix));
 
     if(Left(Message, Len(Prefix)) == Prefix)
     {
-        NewMessage = class'Utils'.static.StripColorCodes(Message);
+        NewMessage = class'Utils'.static.StripIllegalCharacters(Message);
         NewMessage = Mid(NewMessage, PrefixLength); // +1 for space
 
         // Trim leading spaces
