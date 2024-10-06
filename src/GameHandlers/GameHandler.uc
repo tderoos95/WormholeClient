@@ -187,6 +187,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
                 Fields[FieldIndex] = new class'JsonObject';
                 Fields[FieldIndex].AddString("Name", "Red Team");
                 Fields[FieldIndex].AddString("Value", PlayersString);
+                Fields[FieldIndex].AddBool("Inline", true);
             }
         }
 
@@ -201,6 +202,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
                 Fields[FieldIndex] = new class'JsonObject';
                 Fields[FieldIndex].AddString("Name", "Blue Team");
                 Fields[FieldIndex].AddString("Value", PlayersString);
+                Fields[FieldIndex].AddBool("Inline", true);
             }
         }
 
@@ -215,6 +217,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
                 Fields[FieldIndex] = new class'JsonObject';
                 Fields[FieldIndex].AddString("Name", "Spectators");
                 Fields[FieldIndex].AddString("Value", PlayersString);
+                Fields[FieldIndex].AddBool("Inline", false);
             }
         }
     }
@@ -233,6 +236,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
             Fields[FieldIndex] = new class'JsonObject';
             Fields[FieldIndex].AddString("Name", "Players");
             Fields[FieldIndex].AddString("Value", PlayersString);
+            Fields[FieldIndex].AddBool("Inline", true);
         }
 
         // Add spectators
@@ -244,6 +248,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
             Fields[FieldIndex] = new class'JsonObject';
             Fields[FieldIndex].AddString("Name", "Spectators");
             Fields[FieldIndex].AddString("Value", PlayersString);
+            Fields[FieldIndex].AddBool("Inline", true);
         }
     }
 }
