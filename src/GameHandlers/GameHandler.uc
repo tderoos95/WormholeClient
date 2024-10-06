@@ -98,6 +98,246 @@ function HandleMatchEnded()
 function HandleActorSpawned(Actor Other)
 { }
 
+function HandleCommand(string Topic)
+{
+    if(Topic == "command/status")
+    {
+        HandleStatusCommand();
+    }
+}
+
+function HandleStatusCommand()
+{
+    local JsonObject Json, Color;
+    local array<JsonObject> Fields;
+    local int i;
+
+    Json = new class'JsonObject';
+    Json.AddString("Title", class'Utils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
+
+    // Add color
+    Color = new class'JsonObject';
+    Color.AddInt("R", 73);
+    Color.AddInt("G", 35);
+    Color.AddInt("B", 255);
+    Json.AddJson("Color", Color);
+
+    // Add fields
+    Fields.Length = 3;
+
+    // Field 1: Server IP
+    Fields[0] = new class'JsonObject';
+    Fields[0].AddString("Name", "IP");
+    Fields[0].AddString("Value", Level.GetAddressURL());
+    Fields[0].AddBool("Inline", false);
+
+    // Field 2: Map Name
+    Fields[1] = new class'JsonObject';
+    Fields[1].AddString("Name", "Map");
+    Fields[1].AddString("Value", class'Utils'.static.StripIllegalCharacters(Level.Title));
+    Fields[1].AddBool("Inline", true);
+
+    // Field 3: Game Type
+    Fields[2] = new class'JsonObject';
+    Fields[2].AddString("Name", "Gametype");
+    Fields[2].AddString("Value", class'Utils'.static.StripIllegalCharacters(Level.Game.GameName));
+    Fields[2].AddBool("Inline", true);
+
+    EnrichEmbedWithPlayers(Fields);
+
+    // Add fields to embed & send ìt
+    Json.AddArrayJson("Fields", Fields);
+    EventGrid.SendEvent("wormhole/relay/discordembed", Json);
+
+    // Clear all json objects, so memory is freed up after sending
+    for(i = 0; i < Fields.Length; i++)
+    {
+        Fields[i].Clear();
+    }
+
+    Json.Clear();
+    Color.Clear();
+}
+
+function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
+{
+    local array<PlayerController> Players;
+    local array<PlayerController> RedTeamPlayers;
+    local array<PlayerController> BlueTeamPlayers;
+    local array<PlayerController> Spectators;
+    local int i, FieldIndex;
+    local string PlayersString;
+
+    // If teamgame and not coopgame, get all players and filter by team
+    if(Level.Game.bTeamGame && !bIsCoopGame)
+    {
+        Players = GetPlayers();
+        RedTeamPlayers = FilterByTeam(Players, 0);
+        BlueTeamPlayers = FilterByTeam(Players, 1);
+        Spectators = FilterBySpecator(Players, true);
+
+        // Add red team players
+        if(RedTeamPlayers.Length > 0)
+        {
+            for(i = 0; i < RedTeamPlayers.Length; i++)
+            {
+                PlayersString = GetPlayersString(0, false);
+                FieldIndex = Fields.Length;
+                Fields.Length = FieldIndex + 1;
+                Fields[FieldIndex] = new class'JsonObject';
+                Fields[FieldIndex].AddString("Name", "Red Team");
+                Fields[FieldIndex].AddString("Value", PlayersString);
+            }
+        }
+
+        // Add blue team players
+        if(BlueTeamPlayers.Length > 0)
+        {
+            for(i = 0; i < BlueTeamPlayers.Length; i++)
+            {
+                PlayersString = GetPlayersString(1, false);
+                FieldIndex = Fields.Length;
+                Fields.Length = FieldIndex + 1;
+                Fields[FieldIndex] = new class'JsonObject';
+                Fields[FieldIndex].AddString("Name", "Blue Team");
+                Fields[FieldIndex].AddString("Value", PlayersString);
+            }
+        }
+
+        // Add spectators
+        if(Spectators.Length > 0)
+        {
+            for(i = 0; i < Spectators.Length; i++)
+            {
+                PlayersString = GetPlayersString(0, true);
+                FieldIndex = Fields.Length;
+                Fields.Length = FieldIndex + 1;
+                Fields[FieldIndex] = new class'JsonObject';
+                Fields[FieldIndex].AddString("Name", "Spectators");
+                Fields[FieldIndex].AddString("Value", PlayersString);
+            }
+        }
+    }
+    else
+    {
+        Players = GetPlayers();
+        Spectators = FilterBySpecator(Players, true);
+        Players = FilterBySpecator(Players, false);
+
+        // Add players
+        if(Players.Length > 0)
+        {
+            PlayersString = GetPlayersString(0, false);
+            FieldIndex = Fields.Length;
+            Fields.Length = FieldIndex + 1;
+            Fields[FieldIndex] = new class'JsonObject';
+            Fields[FieldIndex].AddString("Name", "Players");
+            Fields[FieldIndex].AddString("Value", PlayersString);
+        }
+
+        // Add spectators
+        if(Spectators.Length > 0)
+        {
+            PlayersString = GetPlayersString(0, true);
+            FieldIndex = Fields.Length;
+            Fields.Length = FieldIndex + 1;
+            Fields[FieldIndex] = new class'JsonObject';
+            Fields[FieldIndex].AddString("Name", "Spectators");
+            Fields[FieldIndex].AddString("Value", PlayersString);
+        }
+    }
+}
+
+// ========================================
+function string GetPlayersString(int TeamIndex, bool bIsSpectator)
+{
+    local array<PlayerController> Players;
+    local string PlayersString;
+    local int i;
+
+    Players = GetPlayers();
+    Players = FilterByTeam(Players, TeamIndex);
+    Players = FilterBySpecator(Players, bIsSpectator);
+
+    for(i = 0; i < Players.Length; i++)
+    {
+        PlayersString = PlayersString $ FormatPlayerName(Players[i]) $ "\\n";
+    }
+
+    return PlayersString;
+}
+
+function array<PlayerController> GetPlayers()
+{
+    local array<PlayerController> Players;
+    local PlayerController PC;
+    local Controller C;
+
+    for (C = Level.ControllerList; C != None; C = C.NextController)
+    {
+        if (PlayerController(C) == None || PlayerController(C).PlayerReplicationInfo.bIsSpectator)
+            continue;
+
+        PC = PlayerController(C);
+        Players.Insert(0, 1);
+        Players[0] = PC;
+    }
+
+    return Players;
+}
+
+function array<PlayerController> FilterBySpecator(array<PlayerController> Players, bool bSpecator)
+{
+    local array<PlayerController> FilteredPlayers;
+    local PlayerController PC;
+    local int i;
+
+    for(i = 0; i < Players.Length; i++)
+    {
+        PC = Players[i];
+        if(PC.PlayerReplicationInfo.bIsSpectator == bSpecator)
+        {
+            FilteredPlayers.Insert(0, 1);
+            FilteredPlayers[FilteredPlayers.Length - 1] = PC;
+        }
+    }
+
+    return FilteredPlayers;
+}
+
+function array<PlayerController> FilterByTeam(array<PlayerController> Players, int TeamIndex)
+{
+    local array<PlayerController> FilteredPlayers;
+    local PlayerController PC;
+    local int i;
+
+    for(i = 0; i < Players.Length; i++)
+    {
+        PC = Players[i];
+        if(PC.PlayerReplicationInfo.Team.TeamIndex == TeamIndex)
+        {
+            FilteredPlayers.Insert(0, 1);
+            FilteredPlayers[FilteredPlayers.Length - 1] = PC;
+        }
+    }
+
+    return FilteredPlayers;
+}
+//
+
+function string FormatPlayerName(PlayerController PC)
+{
+    // format: {countryflag} Name
+    local string IP;
+    local int ColonIndex;
+
+    IP = PC.GetPlayerNetworkAddress();
+    ColonIndex = InStr(Ip, ":");
+    if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
+
+    return "{" $ Ip $ ":country-flag} " $ PC.PlayerReplicationInfo.PlayerName;
+}
+
 defaultproperties {
     bIsCoopGame=false
 }
