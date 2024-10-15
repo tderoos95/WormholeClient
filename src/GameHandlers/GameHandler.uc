@@ -100,10 +100,30 @@ function HandleActorSpawned(Actor Other)
 
 function HandleCommand(string Topic)
 {
-    if(Topic == "command/status")
+    if(Topic == "wormhole/command/status")
     {
         HandleStatusCommand();
     }
+    else
+    {
+        SendCommandNotAvailable();
+    }
+}
+
+function SendCommandNotAvailable()
+{
+    local JsonObject Json, Color;
+
+    Json = new class'JsonObject';
+    Json.AddString("Description", "Command not available or not recognized.");
+
+    Color = new class'JsonObject';
+    Color.AddInt("R", 255);
+    Color.AddInt("G", 0);
+    Color.AddInt("B", 0);
+
+    Json.AddJson("Color", Color);
+    EventGrid.SendEvent("wormhole/relay/discordembed", Json);
 }
 
 function HandleStatusCommand()
@@ -236,7 +256,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
             Fields[FieldIndex] = new class'JsonObject';
             Fields[FieldIndex].AddString("Name", "Players");
             Fields[FieldIndex].AddString("Value", PlayersString);
-            Fields[FieldIndex].AddBool("Inline", true);
+            Fields[FieldIndex].AddBool("Inline", false);
         }
 
         // Add spectators

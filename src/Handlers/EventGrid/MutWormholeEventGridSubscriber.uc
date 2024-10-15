@@ -1,6 +1,7 @@
 class MutWormholeEventGridSubscriber extends EventGridSubscriber;
 
 const ConnectionEstablished = "wormhole/connection/established";
+const CommandPrefix = "wormhole/command/";
 var MutWormhole WormholeMutator; 
 
 function PreBeginPlay()
@@ -15,9 +16,14 @@ public function ProcessEvent(string Topic, JsonObject EventData)
     {
         WormholeMutator.StartMonitoringGame();
     }
+    if (Left(Topic, Len(CommandPrefix)) == CommandPrefix)
+    {
+        WormholeMutator.GameHandler.HandleCommand(Topic);
+    }
 }
 
 defaultproperties 
 {
     SubscriptionTopics(0) = "wormhole/connection/established";
+    SubscriptionTopics(1) = "wormhole/command/";
 }
