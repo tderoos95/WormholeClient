@@ -104,6 +104,10 @@ function HandleCommand(string Topic)
     {
         HandleStatusCommand();
     }
+    else if(Topic == "wormhole/command/commands")
+    {
+        HandleCommandListCommand();
+    }
     else
     {
         SendCommandNotAvailable();
@@ -115,7 +119,7 @@ function SendCommandNotAvailable()
     local JsonObject Json, Color;
 
     Json = new class'JsonObject';
-    Json.AddString("Description", "Command not available or not recognized.");
+    Json.AddString("Description", "Command not available or not recognized. Use /commands to see available commands.");
 
     Color = new class'JsonObject';
     Color.AddInt("R", 255);
@@ -123,6 +127,35 @@ function SendCommandNotAvailable()
     Color.AddInt("B", 0);
 
     Json.AddJson("Color", Color);
+    EventGrid.SendEvent("wormhole/relay/discordembed", Json);
+}
+
+function HandleCommandListCommand()
+{
+    local JsonObject Json, Color;
+    local array<string> Commands;
+    local string Description;
+    local int i;
+
+    Json = new class'JsonObject';
+    Json.AddString("Title", "Available Commands");
+
+    Color = new class'JsonObject';
+    Color.AddInt("R", 73);
+    Color.AddInt("G", 35);
+    Color.AddInt("B", 255);
+    Json.AddJson("Color", Color);
+
+    Commands.Length = 2;
+    Commands[0] = "`/status` - Get server status";
+    Commands[1] = "`/commands` - Get available commands";
+
+    for(i = 0; i < Commands.Length; i++)
+    {
+        Description $= Commands[i] $ "\\n";
+    }
+
+    Json.AddString("Description", Description);
     EventGrid.SendEvent("wormhole/relay/discordembed", Json);
 }
 
@@ -339,7 +372,7 @@ function array<PlayerController> FilterByTeam(array<PlayerController> Players, i
     for(i = 0; i < Players.Length; i++)
     {
         PC = Players[i];
-        if(PC.PlayerReplicationInfo.Team.TeamIndex == TeamIndex)
+        if(PC.PlayerReplicationInfo.Team.TeamIndex == TeamIndex && !PC.PlayerReplicationInfo.bIsSpectator)
         {
             FilteredPlayers.Insert(0, 1);
             FilteredPlayers[FilteredPlayers.Length - 1] = PC;
@@ -355,12 +388,14 @@ function string FormatPlayerName(PlayerController PC)
     // format: {countryflag} Name
     local string IP;
     local int ColonIndex;
+    local string SanitizedName;
 
     IP = PC.GetPlayerNetworkAddress();
     ColonIndex = InStr(Ip, ":");
     if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
 
-    return "{" $ Ip $ ":country-flag} " $ PC.PlayerReplicationInfo.PlayerName;
+    SanitizedName = class'Utils'.static.StripIllegalCharacters(PC.PlayerReplicationInfo.PlayerName);
+    return "{" $ Ip $ ":country-flag} " $ SanitizedName;
 }
 
 defaultproperties {
