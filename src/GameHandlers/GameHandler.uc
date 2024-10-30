@@ -119,7 +119,7 @@ function SendCommandNotAvailable()
     local JsonObject Json, Color;
 
     Json = new class'JsonObject';
-    Json.AddString("Description", "Command not available or not recognized. Use /commands to see available commands.");
+    Json.AddString("Description", "Command not available or not recognized. Use `/commands` to see available commands.");
 
     Color = new class'JsonObject';
     Color.AddInt("R", 255);

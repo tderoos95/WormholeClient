@@ -142,4 +142,5 @@ defaultproperties
     SubscriptionTopics(1)="player/"                          // All player related events
     SubscriptionTopics(2)="wormhole/internal/authenticated"  // Authentication event
     SubscriptionTopics(3)="wormhole/relay"                   // Relay events
+    SubscriptionTopics(4)="wormhole/discord/getserverinfo"   // Get discord server info request
 }
