@@ -66,9 +66,9 @@ public function SendMatchInfo()
 
     Json = new class'JsonObject';
     Json.AddString("ServerIp", Level.GetAddressURL());
-    Json.AddString("ServerName", class'Utils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
-    Json.AddString("GameType", class'Utils'.static.StripIllegalCharacters(Level.Game.GameName));
-    Json.AddString("MapName", class'Utils'.static.StripIllegalCharacters(Level.Title));
+    Json.AddString("ServerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
+    Json.AddString("GameType", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameName));
+    Json.AddString("MapName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Title));
     Json.AddBool("IsTeamGame", Level.Game.bTeamGame);
     Json.AddBool("IsCoopGame", bIsCoopGame);
     EventGrid.SendEvent("match/info", Json);
@@ -166,7 +166,7 @@ function HandleStatusCommand()
     local int i;
 
     Json = new class'JsonObject';
-    Json.AddString("Title", class'Utils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
+    Json.AddString("Title", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
 
     // Add color
     Color = new class'JsonObject';
@@ -187,13 +187,13 @@ function HandleStatusCommand()
     // Field 2: Map Name
     Fields[1] = new class'JsonObject';
     Fields[1].AddString("Name", "Map");
-    Fields[1].AddString("Value", class'Utils'.static.StripIllegalCharacters(Level.Title));
+    Fields[1].AddString("Value", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Title));
     Fields[1].AddBool("Inline", true);
 
     // Field 3: Game Type
     Fields[2] = new class'JsonObject';
     Fields[2].AddString("Name", "Gametype");
-    Fields[2].AddString("Value", class'Utils'.static.StripIllegalCharacters(Level.Game.GameName));
+    Fields[2].AddString("Value", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameName));
     Fields[2].AddBool("Inline", true);
 
     EnrichEmbedWithPlayers(Fields);
@@ -394,7 +394,7 @@ function string FormatPlayerName(PlayerController PC)
     ColonIndex = InStr(Ip, ":");
     if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
 
-    SanitizedName = class'Utils'.static.StripIllegalCharacters(PC.PlayerReplicationInfo.PlayerName);
+    SanitizedName = class'JsonLib.JsonUtils'.static.StripIllegalCharacters(PC.PlayerReplicationInfo.PlayerName);
     return "{" $ Ip $ ":country-flag} " $ SanitizedName;
 }
 

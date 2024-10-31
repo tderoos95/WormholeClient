@@ -42,8 +42,8 @@ function HandleChat(PlayerReplicationInfo PRI, coerce string Message, name Type)
 
 	Json = new class'JsonObject';
 	Json.AddString("PlayerId", PlayerController(PRI.Owner).GetPlayerIdHash());
-	Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(PRI.PlayerName));
-	Json.AddString("Message", class'Utils'.static.StripIllegalCharacters(FormattedMessage));
+	Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(PRI.PlayerName));
+	Json.AddString("Message", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(FormattedMessage));
 	EventGrid.SendEvent("player/chat", Json);
 }
 

@@ -105,7 +105,7 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
 
 	Json = new class'JsonObject';
     Json.AddString("KilledId", KilledPlayerId);
-    Json.AddString("KilledName", class'Utils'.static.StripIllegalCharacters(Killed.PlayerReplicationInfo.PlayerName));
+    Json.AddString("KilledName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Killed.PlayerReplicationInfo.PlayerName));
 
 
     KillerPC = PlayerController(Killer);
@@ -113,11 +113,11 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
     {
     	KillerPlayerId = WormholeMutator.GetStoredPlayerIdHash(KillerPC.GetHumanReadAbleName());
         Json.AddString("KillerId", KillerPlayerId);
-        Json.AddString("KillerName", class'Utils'.static.StripIllegalCharacters(KillerPC.PlayerReplicationInfo.PlayerName));
+        Json.AddString("KillerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(KillerPC.PlayerReplicationInfo.PlayerName));
     }
 
     // Send player death message
-    Json.AddString("DeathMessage", class'Utils'.static.StripIllegalCharacters(DeathMessage));
+    Json.AddString("DeathMessage", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(DeathMessage));
 
 	if (bSuicide)
 		EventGrid.SendEvent("player/suicided", Json);
@@ -134,7 +134,7 @@ function OnPlayerOut(PlayerController Player)
 
 	Json = new class'JsonObject';
 	Json.AddString("PlayerId", Player.GetPlayerIDHash());
-	Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Player.PlayerReplicationInfo.PlayerName));
+	Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Player.PlayerReplicationInfo.PlayerName));
 	EventGrid.SendEvent("player/out", Json);
 }
 
@@ -144,7 +144,7 @@ function OnFirstBlood(PlayerController Killer)
 
 	Json = new class'JsonObject';
 	Json.AddString("PlayerId", Killer.GetPlayerIDHash());
-	Json.AddString("PlayerName", class'Utils'.static.StripIllegalCharacters(Killer.PlayerReplicationInfo.PlayerName));
+	Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Killer.PlayerReplicationInfo.PlayerName));
 	EventGrid.SendEvent("match/firstblood", Json);
 }
 
