@@ -331,7 +331,7 @@ function array<PlayerController> GetPlayers()
 
     for (C = Level.ControllerList; C != None; C = C.NextController)
     {
-        if (PlayerController(C) == None || PlayerController(C).PlayerReplicationInfo.bIsSpectator)
+        if (PlayerController(C) == None)
             continue;
 
         PC = PlayerController(C);
