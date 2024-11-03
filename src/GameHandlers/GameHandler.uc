@@ -69,8 +69,6 @@ public function SendMatchInfo()
     Json.AddString("ServerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
     Json.AddString("GameType", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameName));
     Json.AddString("MapName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Title));
-    Json.AddBool("IsTeamGame", Level.Game.bTeamGame);
-    Json.AddBool("IsCoopGame", bIsCoopGame);
     EventGrid.SendEvent("match/info", Json);
 }
 

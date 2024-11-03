@@ -242,7 +242,7 @@ function MonitorPlayers()
     local string Ip;
     local int i;
     local JsonObject Json;
-    local bool bIsGhost;
+    local bool bIsGhost, bSpectatorStateChange;
 
     for(i = 0; i < Players.length; i++)
     {
@@ -304,15 +304,28 @@ function MonitorPlayers()
         // Check if player has changed teams or became a spectator
         if(Players[i].PRI.Team != None && Players[i].PRI.Team != Players[i].LastTeam || Players[i].bIsSpectator != Players[i].PRI.bOnlySpectator)
         {
-            Json = new class'JsonObject';
-            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
-            Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PC.GetHumanReadableName()));
-            Json.AddInt("Team", Players[i].PRI.Team.TeamIndex);
-            Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
+            bSpectatorStateChange = Players[i].bIsSpectator != Players[i].PRI.bOnlySpectator;
 
-            EventGrid.SendEvent("player/changedteam", Json);
-            Players[i].LastTeam = Players[i].PRI.Team;
-            Players[i].bIsSpectator = Players[i].PRI.bOnlySpectator;
+            if(bSpectatorStateChange)
+            {
+                Json = new class'JsonObject';
+                Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PC.GetHumanReadableName()));
+                Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
+                EventGrid.SendEvent("player/changedspectatorstate", Json);
+                Players[i].bIsSpectator = Players[i].PRI.bOnlySpectator;
+            }
+            else // Changed teams
+            {
+                if(Level.Game.bTeamGame && !GameHandler.bIsCoopGame)
+                {
+                    Json = new class'JsonObject';
+                    Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PC.GetHumanReadableName()));
+                    Json.AddInt("Team", Players[i].PRI.Team.TeamIndex);
+                    EventGrid.SendEvent("player/changedteam", Json);
+                }
+
+                Players[i].LastTeam = Players[i].PRI.Team;
+            }
         }
     }
 }
