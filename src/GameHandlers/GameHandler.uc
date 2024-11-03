@@ -280,10 +280,6 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         Spectators = FilterBySpecator(Players, true);
         Players = FilterBySpecator(Players, false);
 
-        Log("Players: " $ Players.Length, 'Wormhole');
-        Log("Spectators: " $ Spectators.Length, 'Wormhole');
-        Log("Players: " $ Players.Length, 'Wormhole');
-
         // Add players
         if(Players.Length > 0)
         {
@@ -305,7 +301,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
             Fields[FieldIndex] = new class'JsonObject';
             Fields[FieldIndex].AddString("Name", "Spectators");
             Fields[FieldIndex].AddString("Value", PlayersString);
-            Fields[FieldIndex].AddBool("Inline", true);
+            Fields[FieldIndex].AddBool("Inline", false);
         }
     }
 }
