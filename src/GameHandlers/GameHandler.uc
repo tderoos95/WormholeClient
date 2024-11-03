@@ -6,6 +6,7 @@ enum TimerModeType
     AwaitMatchEnded
 };
 
+var MutWormhole WormholeMutator;
 var TimerModeType TimerMode;
 var EventGrid EventGrid;
 var bool bIsCoopGame;
@@ -165,6 +166,7 @@ function HandleStatusCommand()
 
     Json = new class'JsonObject';
     Json.AddString("Title", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
+    // Json.AddString("Title", "[Unreal UXniverse] Dungeon RPG");
 
     // Add color
     Color = new class'JsonObject';
@@ -232,13 +234,13 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         {
             for(i = 0; i < RedTeamPlayers.Length; i++)
             {
-                PlayersString = GetPlayersString(0, false);
+                PlayersString = GetPlayersString(RedTeamPlayers);
                 FieldIndex = Fields.Length;
                 Fields.Length = FieldIndex + 1;
                 Fields[FieldIndex] = new class'JsonObject';
                 Fields[FieldIndex].AddString("Name", "Red Team");
                 Fields[FieldIndex].AddString("Value", PlayersString);
-                Fields[FieldIndex].AddBool("Inline", true);
+                Fields[FieldIndex].AddBool("Inline", false);
             }
         }
 
@@ -247,13 +249,13 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         {
             for(i = 0; i < BlueTeamPlayers.Length; i++)
             {
-                PlayersString = GetPlayersString(1, false);
+                PlayersString = GetPlayersString(BlueTeamPlayers);
                 FieldIndex = Fields.Length;
                 Fields.Length = FieldIndex + 1;
                 Fields[FieldIndex] = new class'JsonObject';
                 Fields[FieldIndex].AddString("Name", "Blue Team");
                 Fields[FieldIndex].AddString("Value", PlayersString);
-                Fields[FieldIndex].AddBool("Inline", true);
+                Fields[FieldIndex].AddBool("Inline", false);
             }
         }
 
@@ -262,7 +264,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         {
             for(i = 0; i < Spectators.Length; i++)
             {
-                PlayersString = GetPlayersString(0, true);
+                PlayersString = GetPlayersString(Spectators);
                 FieldIndex = Fields.Length;
                 Fields.Length = FieldIndex + 1;
                 Fields[FieldIndex] = new class'JsonObject';
@@ -278,10 +280,14 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         Spectators = FilterBySpecator(Players, true);
         Players = FilterBySpecator(Players, false);
 
+        Log("Players: " $ Players.Length, 'Wormhole');
+        Log("Spectators: " $ Spectators.Length, 'Wormhole');
+        Log("Players: " $ Players.Length, 'Wormhole');
+
         // Add players
         if(Players.Length > 0)
         {
-            PlayersString = GetPlayersString(0, false);
+            PlayersString = GetPlayersString(Players);
             FieldIndex = Fields.Length;
             Fields.Length = FieldIndex + 1;
             Fields[FieldIndex] = new class'JsonObject';
@@ -293,7 +299,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         // Add spectators
         if(Spectators.Length > 0)
         {
-            PlayersString = GetPlayersString(0, true);
+            PlayersString = GetPlayersString(Spectators);
             FieldIndex = Fields.Length;
             Fields.Length = FieldIndex + 1;
             Fields[FieldIndex] = new class'JsonObject';
@@ -305,15 +311,10 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
 }
 
 // ========================================
-function string GetPlayersString(int TeamIndex, bool bIsSpectator)
+function string GetPlayersString(array<PlayerController> Players)
 {
-    local array<PlayerController> Players;
     local string PlayersString;
     local int i;
-
-    Players = GetPlayers();
-    Players = FilterByTeam(Players, TeamIndex);
-    Players = FilterBySpecator(Players, bIsSpectator);
 
     for(i = 0; i < Players.Length; i++)
     {
@@ -326,17 +327,12 @@ function string GetPlayersString(int TeamIndex, bool bIsSpectator)
 function array<PlayerController> GetPlayers()
 {
     local array<PlayerController> Players;
-    local PlayerController PC;
-    local Controller C;
+    local int i;
 
-    for (C = Level.ControllerList; C != None; C = C.NextController)
+    for (i = 0; i < WormholeMutator.Players.Length; i++)
     {
-        if (PlayerController(C) == None)
-            continue;
-
-        PC = PlayerController(C);
         Players.Insert(0, 1);
-        Players[0] = PC;
+        Players[0] = WormholeMutator.Players[i].PC;
     }
 
     return Players;
@@ -351,12 +347,14 @@ function array<PlayerController> FilterBySpecator(array<PlayerController> Player
     for(i = 0; i < Players.Length; i++)
     {
         PC = Players[i];
-        if(PC.PlayerReplicationInfo.bIsSpectator == bSpecator)
+        if(PC.PlayerReplicationInfo.bOnlySpectator == bSpecator)
         {
             FilteredPlayers.Insert(0, 1);
             FilteredPlayers[FilteredPlayers.Length - 1] = PC;
         }
     }
+
+    Log("Filtered spectactors: " $ FilteredPlayers.Length, 'Wormhole');
 
     return FilteredPlayers;
 }
@@ -370,12 +368,14 @@ function array<PlayerController> FilterByTeam(array<PlayerController> Players, i
     for(i = 0; i < Players.Length; i++)
     {
         PC = Players[i];
-        if(PC.PlayerReplicationInfo.Team.TeamIndex == TeamIndex && !PC.PlayerReplicationInfo.bIsSpectator)
+        if(!PC.PlayerReplicationInfo.bOnlySpectator && PC.PlayerReplicationInfo.Team.TeamIndex == TeamIndex)
         {
             FilteredPlayers.Insert(0, 1);
             FilteredPlayers[FilteredPlayers.Length - 1] = PC;
         }
     }
+
+    Log("Filtered team: " $ FilteredPlayers.Length, 'Wormhole');
 
     return FilteredPlayers;
 }

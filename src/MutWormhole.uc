@@ -109,6 +109,7 @@ function AddGameHandler(class<GameInfo> GameType)
         {
             GameHandler = Spawn(Settings.GameHandlers[i].GameHandler, self);
             log("Found game handler '" $ GameHandler.class $ "' for " $ GameTypeName $ "!");
+            GameHandler.WormholeMutator = self;
             GameHandler.EventGrid = EventGrid;
             GameHandler.OnInitialize();
             return;
@@ -117,6 +118,7 @@ function AddGameHandler(class<GameInfo> GameType)
 
     log("No game handler found for " $ GameTypeName $ ", adding default GameHandler", 'Wormhole');
     GameHandler = Spawn(class'GameHandler', self);
+    GameHandler.WormholeMutator = self;
     GameHandler.EventGrid = EventGrid;
     GameHandler.OnInitialize();
 }
