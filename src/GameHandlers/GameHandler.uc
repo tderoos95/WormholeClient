@@ -359,7 +359,7 @@ function array<PlayerController> FilterBySpecator(array<PlayerController> Player
         if(PC.PlayerReplicationInfo.bOnlySpectator == bSpecator)
         {
             FilteredPlayers.Insert(0, 1);
-            FilteredPlayers[FilteredPlayers.Length - 1] = PC;
+            FilteredPlayers[0] = PC;
         }
     }
 
