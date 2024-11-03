@@ -1,5 +1,5 @@
 //============================================================
-// Wormhole, 2021-2024
+// Wormhole, 2021-2025
 // Made by Infy (https://discord.unrealuniverse.net)
 // Thanks to Ant from Death Warrant for various improvements.
 //============================================================
@@ -7,7 +7,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "1.3.0 Beta";
+const RELEASE_VERSION = "2.0.0";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
@@ -65,8 +65,8 @@ function PreBeginPlay()
 	SaveConfig();
 
     log("===================================================================", 'Wormhole');
-    log("Wormhole " $ RELEASE_VERSION, 'Wormhole');
-    log("https://discord.unrealuniverse.net", 'Wormhole');
+    log("Wormhole " $ RELEASE_VERSION @ "- 2021-2025", 'Wormhole');
+    log("Made by Infy - https://discord.unrealuniverse.net", 'Wormhole');
     if(Settings.bDebug) log("!! Wormhole is running in DEBUG mode, debug commands are enabled !!", 'Wormhole');
     log("===================================================================", 'Wormhole');
 
@@ -74,6 +74,9 @@ function PreBeginPlay()
     EventGrid = MutatorEventGridSubscriber.GetOrCreateEventGrid();
     TimerController = Spawn(class'EventGridTimerController', self);
     ChatSpectator = Spawn(class'ChatSpectator', self);
+
+    // Add Wormhole GUI
+    Level.Game.AddMutator("WormholeGUI.MutWormholeGUI");
 
     AddGameRules();
     CreateConnection();
