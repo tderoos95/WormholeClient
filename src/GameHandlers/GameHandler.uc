@@ -166,7 +166,6 @@ function HandleStatusCommand()
 
     Json = new class'JsonObject';
     Json.AddString("Title", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
-    // Json.AddString("Title", "[Unreal UXniverse] Dungeon RPG");
 
     // Add color
     Color = new class'JsonObject';
@@ -225,53 +224,61 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
     if(Level.Game.bTeamGame && !bIsCoopGame)
     {
         Players = GetPlayers();
-        RedTeamPlayers = FilterByTeam(Players, 0);
-        BlueTeamPlayers = FilterByTeam(Players, 1);
         Spectators = FilterBySpecator(Players, true);
+
+        Log("Players: " $ Players.Length, 'Wormhole');
+        Log("Spectators: " $ Spectators.Length, 'Wormhole');
+
+        RedTeamPlayers = FilterByTeam(Players, 0);
+        Log("Red team: " $ RedTeamPlayers.Length, 'Wormhole');
 
         // Add red team players
         if(RedTeamPlayers.Length > 0)
         {
-            for(i = 0; i < RedTeamPlayers.Length; i++)
+            for (i = 0; i < RedTeamPlayers.Length; i++)
             {
-                PlayersString = GetPlayersString(RedTeamPlayers);
-                FieldIndex = Fields.Length;
-                Fields.Length = FieldIndex + 1;
-                Fields[FieldIndex] = new class'JsonObject';
-                Fields[FieldIndex].AddString("Name", "Red Team");
-                Fields[FieldIndex].AddString("Value", PlayersString);
-                Fields[FieldIndex].AddBool("Inline", false);
+                Log("Red team player: " $ RedTeamPlayers[i].PlayerReplicationInfo.PlayerName, 'Wormhole');
             }
+
+            PlayersString = GetPlayersString(FilterByTeam(Players, 0));
+            FieldIndex = Fields.Length;
+            Fields.Length = FieldIndex + 1;
+            Fields[FieldIndex] = new class'JsonObject';
+            Fields[FieldIndex].AddString("Name", "Red Team");
+            Fields[FieldIndex].AddString("Value", PlayersString);
+            Fields[FieldIndex].AddBool("Inline", false);
+        }
+
+        BlueTeamPlayers = FilterByTeam(Players, 1);
+        Log("Blue team: " $ BlueTeamPlayers.Length, 'Wormhole');
+
+        for (i = 0; i < BlueTeamPlayers.Length; i++)
+        {
+            Log("Blue team player: " $ BlueTeamPlayers[i].PlayerReplicationInfo.PlayerName, 'Wormhole');
         }
 
         // Add blue team players
         if(BlueTeamPlayers.Length > 0)
         {
-            for(i = 0; i < BlueTeamPlayers.Length; i++)
-            {
-                PlayersString = GetPlayersString(BlueTeamPlayers);
-                FieldIndex = Fields.Length;
-                Fields.Length = FieldIndex + 1;
-                Fields[FieldIndex] = new class'JsonObject';
-                Fields[FieldIndex].AddString("Name", "Blue Team");
-                Fields[FieldIndex].AddString("Value", PlayersString);
-                Fields[FieldIndex].AddBool("Inline", false);
-            }
+            PlayersString = GetPlayersString(FilterByTeam(Players, 1));
+            FieldIndex = Fields.Length;
+            Fields.Length = FieldIndex + 1;
+            Fields[FieldIndex] = new class'JsonObject';
+            Fields[FieldIndex].AddString("Name", "Blue Team");
+            Fields[FieldIndex].AddString("Value", PlayersString);
+            Fields[FieldIndex].AddBool("Inline", false);
         }
 
         // Add spectators
         if(Spectators.Length > 0)
         {
-            for(i = 0; i < Spectators.Length; i++)
-            {
-                PlayersString = GetPlayersString(Spectators);
-                FieldIndex = Fields.Length;
-                Fields.Length = FieldIndex + 1;
-                Fields[FieldIndex] = new class'JsonObject';
-                Fields[FieldIndex].AddString("Name", "Spectators");
-                Fields[FieldIndex].AddString("Value", PlayersString);
-                Fields[FieldIndex].AddBool("Inline", false);
-            }
+            PlayersString = GetPlayersString(Spectators);
+            FieldIndex = Fields.Length;
+            Fields.Length = FieldIndex + 1;
+            Fields[FieldIndex] = new class'JsonObject';
+            Fields[FieldIndex].AddString("Name", "Spectators");
+            Fields[FieldIndex].AddString("Value", PlayersString);
+            Fields[FieldIndex].AddBool("Inline", false);
         }
     }
     else
@@ -279,6 +286,9 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         Players = GetPlayers();
         Spectators = FilterBySpecator(Players, true);
         Players = FilterBySpecator(Players, false);
+
+        Log("Players: " $ Players.Length, 'Wormhole');
+        Log("Spectators: " $ Spectators.Length, 'Wormhole');
 
         // Add players
         if(Players.Length > 0)
@@ -327,8 +337,11 @@ function array<PlayerController> GetPlayers()
 
     for (i = 0; i < WormholeMutator.Players.Length; i++)
     {
-        Players.Insert(0, 1);
-        Players[0] = WormholeMutator.Players[i].PC;
+        if(WormholeMutator.Players[i].PC != None)
+        {
+            Players.Insert(0, 1);
+            Players[0] = WormholeMutator.Players[i].PC;
+        }
     }
 
     return Players;
@@ -364,10 +377,17 @@ function array<PlayerController> FilterByTeam(array<PlayerController> Players, i
     for(i = 0; i < Players.Length; i++)
     {
         PC = Players[i];
+
+        Log("Player: " $ PC.PlayerReplicationInfo.PlayerName, 'Wormhole');
+        Log("Team: " $ PC.PlayerReplicationInfo.Team.TeamIndex, 'Wormhole');
+        Log("Only spectator: " $ PC.PlayerReplicationInfo.bOnlySpectator, 'Wormhole');
+
         if(!PC.PlayerReplicationInfo.bOnlySpectator && PC.PlayerReplicationInfo.Team.TeamIndex == TeamIndex)
         {
             FilteredPlayers.Insert(0, 1);
-            FilteredPlayers[FilteredPlayers.Length - 1] = PC;
+            FilteredPlayers[0] = PC;
+
+            Log("Added player to team: " $ PC.PlayerReplicationInfo.PlayerName, 'Wormhole');
         }
     }
 
@@ -383,6 +403,9 @@ function string FormatPlayerName(PlayerController PC)
     local string IP;
     local int ColonIndex;
     local string SanitizedName;
+
+    Log("Player name: " $ PC.PlayerReplicationInfo.PlayerName, 'Wormhole');
+    Log("Player IP: " $ PC.GetPlayerNetworkAddress(), 'Wormhole');
 
     IP = PC.GetPlayerNetworkAddress();
     ColonIndex = InStr(Ip, ":");
