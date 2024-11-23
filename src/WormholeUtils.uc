@@ -1,4 +1,4 @@
-class Utils extends Object;
+class WormholeUtils extends Object;
 
 final simulated static function string MakeColorCode(Color NewColor)
 {
