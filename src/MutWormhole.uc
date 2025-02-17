@@ -151,16 +151,6 @@ function Mutate(string Command, PlayerController PC)
     local string GivenIp;
     local bool bAuthorized;
 
-    // DEBUG
-
-    if(Command ~= "status")
-    {
-        GameHandler.HandleCommand("command/status");
-        PC.ClientMessage("Wormhole status command sent.");
-    }
-
-    //==
-
     if(NextMutator != None)
         NextMutator.Mutate(Command, PC);
     

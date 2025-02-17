@@ -217,7 +217,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
     local array<PlayerController> RedTeamPlayers;
     local array<PlayerController> BlueTeamPlayers;
     local array<PlayerController> Spectators;
-    local int i, FieldIndex;
+    local int FieldIndex;
     local string PlayersString;
 
     // If teamgame and not coopgame, get all players and filter by team
@@ -225,21 +225,11 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
     {
         Players = GetPlayers();
         Spectators = FilterBySpecator(Players, true);
-
-        Log("Players: " $ Players.Length, 'Wormhole');
-        Log("Spectators: " $ Spectators.Length, 'Wormhole');
-
         RedTeamPlayers = FilterByTeam(Players, 0);
-        Log("Red team: " $ RedTeamPlayers.Length, 'Wormhole');
 
         // Add red team players
         if(RedTeamPlayers.Length > 0)
         {
-            for (i = 0; i < RedTeamPlayers.Length; i++)
-            {
-                Log("Red team player: " $ RedTeamPlayers[i].PlayerReplicationInfo.PlayerName, 'Wormhole');
-            }
-
             PlayersString = GetPlayersString(FilterByTeam(Players, 0));
             FieldIndex = Fields.Length;
             Fields.Length = FieldIndex + 1;
@@ -250,12 +240,6 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         }
 
         BlueTeamPlayers = FilterByTeam(Players, 1);
-        Log("Blue team: " $ BlueTeamPlayers.Length, 'Wormhole');
-
-        for (i = 0; i < BlueTeamPlayers.Length; i++)
-        {
-            Log("Blue team player: " $ BlueTeamPlayers[i].PlayerReplicationInfo.PlayerName, 'Wormhole');
-        }
 
         // Add blue team players
         if(BlueTeamPlayers.Length > 0)
@@ -286,9 +270,6 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
         Players = GetPlayers();
         Spectators = FilterBySpecator(Players, true);
         Players = FilterBySpecator(Players, false);
-
-        Log("Players: " $ Players.Length, 'Wormhole');
-        Log("Spectators: " $ Spectators.Length, 'Wormhole');
 
         // Add players
         if(Players.Length > 0)
@@ -363,8 +344,6 @@ function array<PlayerController> FilterBySpecator(array<PlayerController> Player
         }
     }
 
-    Log("Filtered spectactors: " $ FilteredPlayers.Length, 'Wormhole');
-
     return FilteredPlayers;
 }
 
@@ -378,16 +357,10 @@ function array<PlayerController> FilterByTeam(array<PlayerController> Players, i
     {
         PC = Players[i];
 
-        Log("Player: " $ PC.PlayerReplicationInfo.PlayerName, 'Wormhole');
-        Log("Team: " $ PC.PlayerReplicationInfo.Team.TeamIndex, 'Wormhole');
-        Log("Only spectator: " $ PC.PlayerReplicationInfo.bOnlySpectator, 'Wormhole');
-
         if(!PC.PlayerReplicationInfo.bOnlySpectator && PC.PlayerReplicationInfo.Team.TeamIndex == TeamIndex)
         {
             FilteredPlayers.Insert(0, 1);
             FilteredPlayers[0] = PC;
-
-            Log("Added player to team: " $ PC.PlayerReplicationInfo.PlayerName, 'Wormhole');
         }
     }
 
@@ -403,9 +376,6 @@ function string FormatPlayerName(PlayerController PC)
     local string IP;
     local int ColonIndex;
     local string SanitizedName;
-
-    Log("Player name: " $ PC.PlayerReplicationInfo.PlayerName, 'Wormhole');
-    Log("Player IP: " $ PC.GetPlayerNetworkAddress(), 'Wormhole');
 
     IP = PC.GetPlayerNetworkAddress();
     ColonIndex = InStr(Ip, ":");
