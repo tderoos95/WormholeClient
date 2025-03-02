@@ -41,7 +41,6 @@ function HandleChat(PlayerReplicationInfo PRI, coerce string Message, name Type)
 	FormattedMessage = WormholeMutator.FormatChatMessage(PRI, Message, Type);
 
 	Json = new class'JsonObject';
-	Json.AddString("PlayerId", PlayerController(PRI.Owner).GetPlayerIdHash());
 	Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(PRI.PlayerName));
 	Json.AddString("Message", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(FormattedMessage));
 	EventGrid.SendEvent("player/chat", Json);

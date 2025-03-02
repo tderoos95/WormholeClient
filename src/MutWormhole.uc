@@ -7,7 +7,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "2.0.1";
+const RELEASE_VERSION = "2.0.2";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
@@ -64,11 +64,15 @@ function PreBeginPlay()
     Settings.SaveConfig();
 	SaveConfig();
 
-    log("===================================================================", 'Wormhole');
-    log("Wormhole " $ RELEASE_VERSION @ "- 2021-2025", 'Wormhole');
-    log("Made by Infy - https://discord.unrealuniverse.net", 'Wormhole');
+    log("=====================================================", 'Wormhole');
+    log("Wormhole (2021-2025)", 'Wormhole');
+    log("Version: " $ RELEASE_VERSION, 'Wormhole');
+    log("Author: Infy", 'Wormhole');
+    log("=====================================================", 'Wormhole');
+    log("Website: https://wormhole.unrealuniverse.net", 'Wormhole');
+    log("Discord: https://discord.unrealuniverse.net", 'Wormhole');
     if(Settings.bDebug) log("!! Wormhole is running in DEBUG mode, debug commands are enabled !!", 'Wormhole');
-    log("===================================================================", 'Wormhole');
+    log("=====================================================", 'Wormhole');
 
     MutatorEventGridSubscriber = Spawn(class'MutWormholeEventGridSubscriber', self);
     EventGrid = MutatorEventGridSubscriber.GetOrCreateEventGrid();
@@ -277,7 +281,6 @@ function MonitorPlayers()
             Json = new class'JsonObject';
             Json.AddString("LastName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].LastName));
             Json.AddString("NewName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PRI.PlayerName));
-            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
             EventGrid.SendEvent("player/changedname", Json);
             Players[i].LastName = Players[i].PRI.PlayerName;
         }
@@ -287,7 +290,6 @@ function MonitorPlayers()
         {
             Json = new class'JsonObject';
             Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PRI.PlayerName));
-            Json.AddString("PlayerId", Players[i].PC.GetPlayerIdHash());
 
             if(Players[i].PRI.bAdmin)
                 EventGrid.SendEvent("player/admin/login", Json);
@@ -335,8 +337,6 @@ function ProcessPlayerConnected(string Ip, int PlayerIndex)
     if(ColonIndex != -1) Ip = Left(Ip, ColonIndex);
 
     Json = new class'JsonObject';
-    Json.AddString("Ip", Ip);
-    Json.AddString("PlayerId", Players[PlayerIndex].PC.GetPlayerIdHash());
     Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[PlayerIndex].PC.GetHumanReadableName()));
     EventGrid.SendEvent("player/connected", Json);
 
@@ -354,7 +354,6 @@ function ProcessPlayerDisconnected(int PlayerIndex)
     local int i;
 
     Json = new class'JsonObject';
-    Json.AddString("PlayerId", Players[PlayerIndex].PlayerIdHash);
     Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[PlayerIndex].LastName));
     EventGrid.SendEvent("player/disconnected", Json);
 
@@ -372,18 +371,6 @@ function MatchStarting()
 {
     if(GameHandler != None)
         GameHandler.HandleMatchStarted();
-}
-
-final function string GetStoredPlayerIdHash(string PlayerName)
-{
-    local int i;
-
-    for(i = 0; i < Players.length; i++)
-    {
-        if(Players[i].PC.GetHumanReadableName() ~= PlayerName)
-            return Players[i].PlayerIdHash;
-    }
-    return "";
 }
 
 // Map switch
