@@ -2,23 +2,23 @@ class Plugin_PrivacyFilter extends WormholePlugin
     config(Wormhole);
 
 var config string DiscordPrefix;
-var config bool EnableHudColor;
 
 function OnInitialize()
 {
     local Plugin_PrivacyFilterBroadcastHandler NewBroadcastHandler;
     local BroadcastHandler OldBroadcastHandler;
 
-    if(EnableHudColor)
-    {
-        log("Plugin_PrivacyFilter: Spawning new BroadcastHandler with HUD color enabled");
-        NewBroadcastHandler = Spawn(class'Plugin_PrivacyFilterBroadcastHandler');
-        NewBroadcastHandler.DiscordPrefix = DiscordPrefix;
-        OldBroadcastHandler = Level.Game.BroadcastHandler;
-        Level.Game.BroadcastHandler = NewBroadcastHandler;
-        OldBroadcastHandler.Destroy();
-        log("Plugin_PrivacyFilter: BroadcastHandler replaced");
-    }
+    log("Plugin_PrivacyFilter: Spawning new BroadcastHandler");
+    OldBroadcastHandler = Level.Game.BroadcastHandler;
+
+    // Spawn the new BroadcastHandler
+    NewBroadcastHandler = Spawn(class'Plugin_PrivacyFilterBroadcastHandler');
+    NewBroadcastHandler.DiscordPrefix = DiscordPrefix;
+
+    // Prioritize the new BroadcastHandler, and put the old one after it
+    NewBroadcastHandler.NextBroadcastHandler = OldBroadcastHandler;
+    Level.Game.BroadcastHandler = NewBroadcastHandler;
+    log("Plugin_PrivacyFilter: Added new BroadcastHandler");
 }
 
 function bool PreventReportChat(PlayerReplicationInfo PRI, out string Message, name Type)
