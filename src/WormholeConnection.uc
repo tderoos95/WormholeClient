@@ -335,6 +335,7 @@ state AwaitingAuthentication // HandshakePerformed
 		log("Sending authentication request", Name);
 
 		Json = new class'JsonObject';
+		Json.AddString("ClientVersion", WormholeMutator.RELEASE_VERSION);
 		Json.AddString("Token", Settings.Token);
 		SendEventData("wormhole/authentication/request", Json);
 	}

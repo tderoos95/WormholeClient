@@ -25,7 +25,7 @@ function Broadcast(Actor Sender, coerce string Msg, optional name Type)
 
 static final function string GetChatMessagePrefix()
 {
-    return class'Utils'.static.MakeColorCode(default.DiscordChatColor) $ "Discord:";
+    return class'WormholeUtils'.static.MakeColorCode(default.DiscordChatColor) $ "Discord:";
 }
 
 defaultproperties {
