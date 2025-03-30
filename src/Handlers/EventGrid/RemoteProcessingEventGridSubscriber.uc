@@ -138,8 +138,10 @@ function bool ShouldFilterTopic(string Topic)
 
 defaultproperties
 {
-    SubscriptionTopics(0)="match/"                           // All match related events
-    SubscriptionTopics(1)="player/"                          // All player related events
-    SubscriptionTopics(2)="wormhole/internal/authenticated"  // Authentication event
-    SubscriptionTopics(3)="wormhole/relay"                   // Relay events
+    SubscriptionTopics(0)="match/"                                        // All match related events
+    SubscriptionTopics(1)="player/"                                       // All player related events
+    SubscriptionTopics(2)="wormhole/internal/authenticated"               // Authentication event
+    SubscriptionTopics(3)="wormhole/relay"                                // Relay events
+    SubscriptionTopics(4)="wormhole/discord/serverinfo/get"                // Get discord server info request
+    SubscriptionTopics(5)="wormhole/discord/serverinfo/members/getpage"   // Get discord server members request
 }
