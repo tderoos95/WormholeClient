@@ -180,7 +180,7 @@ function HandleStatusCommand()
     // Field 1: Server IP
     Fields[0] = new class'JsonObject';
     Fields[0].AddString("Name", "IP");
-    Fields[0].AddString("Value", Level.GetAddressURL());
+    Fields[0].AddString("Value", "{" $ Level.GetAddressURL() $ ":ip}");
     Fields[0].AddBool("Inline", false);
 
     // Field 2: Map Name
