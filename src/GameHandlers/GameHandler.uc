@@ -69,7 +69,7 @@ public function SendMatchInfo()
     Json.AddString("ServerIp", Level.GetAddressURL());
     Json.AddString("ServerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
     Json.AddString("GameType", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameName));
-    Json.AddString("MapName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Title));
+    Json.AddString("MapName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(GetMapTitle()));
     EventGrid.SendEvent("match/info", Json);
 }
 
@@ -158,6 +158,17 @@ function HandleCommandListCommand()
     EventGrid.SendEvent("wormhole/relay/discordembed", Json);
 }
 
+function string GetMapTitle()
+{
+    local string MapTitle;
+
+    MapTitle = Level.Title;
+    if (MapTitle ~= "Untitled")
+        MapTitle = string(Outer.Name);
+    
+    return MapTitle;
+}
+
 function HandleStatusCommand()
 {
     local JsonObject Json, Color;
@@ -186,7 +197,7 @@ function HandleStatusCommand()
     // Field 2: Map Name
     Fields[1] = new class'JsonObject';
     Fields[1].AddString("Name", "Map");
-    Fields[1].AddString("Value", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Title));
+    Fields[1].AddString("Value", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(GetMapTitle()));
     Fields[1].AddBool("Inline", true);
 
     // Field 3: Game Type
@@ -224,7 +235,7 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
     if(Level.Game.bTeamGame && !bIsCoopGame)
     {
         Players = GetPlayers();
-        Spectators = FilterBySpecator(Players, true);
+        Spectators = FilterBySpectator(Players, true);
         RedTeamPlayers = FilterByTeam(Players, 0);
 
         // Add red team players
@@ -268,8 +279,8 @@ function EnrichEmbedWithPlayers(out array<JsonObject> Fields)
     else
     {
         Players = GetPlayers();
-        Spectators = FilterBySpecator(Players, true);
-        Players = FilterBySpecator(Players, false);
+        Spectators = FilterBySpectator(Players, true);
+        Players = FilterBySpectator(Players, false);
 
         // Add players
         if(Players.Length > 0)
@@ -328,7 +339,7 @@ function array<PlayerController> GetPlayers()
     return Players;
 }
 
-function array<PlayerController> FilterBySpecator(array<PlayerController> Players, bool bSpecator)
+function array<PlayerController> FilterBySpectator(array<PlayerController> Players, bool bSpectator)
 {
     local array<PlayerController> FilteredPlayers;
     local PlayerController PC;
@@ -337,7 +348,7 @@ function array<PlayerController> FilterBySpecator(array<PlayerController> Player
     for(i = 0; i < Players.Length; i++)
     {
         PC = Players[i];
-        if(PC.PlayerReplicationInfo.bOnlySpectator == bSpecator)
+        if(PC.PlayerReplicationInfo.bOnlySpectator == bSpectator)
         {
             FilteredPlayers.Insert(0, 1);
             FilteredPlayers[0] = PC;
