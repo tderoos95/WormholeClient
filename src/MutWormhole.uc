@@ -7,7 +7,7 @@ class MutWormhole extends Mutator
     dependson(WormholeConnection)
     config(Wormhole);
 
-const RELEASE_VERSION = "2.0.5";
+const RELEASE_VERSION = "2.0.6";
 const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 
 //=========================================================
@@ -112,6 +112,13 @@ function AddGameHandler(class<GameInfo> GameType)
         if (Settings.GameHandlers[i].GameTypeName ~= GameTypeName)
         {
             GameHandler = Spawn(Settings.GameHandlers[i].GameHandler, self);
+
+            if (GameHandler == None)
+            {
+                log("Failed to spawn game handler for " $ GameTypeName $ "!", 'Wormhole');
+                break;
+            }
+
             log("Found game handler '" $ GameHandler.class $ "' for " $ GameTypeName $ "!");
             GameHandler.WormholeMutator = self;
             GameHandler.EventGrid = EventGrid;
@@ -120,7 +127,7 @@ function AddGameHandler(class<GameInfo> GameType)
         }
     }
 
-    log("No game handler found for " $ GameTypeName $ ", adding default GameHandler", 'Wormhole');
+    log("Spawning default game handler for " $ GameTypeName $ "!", 'Wormhole');
     GameHandler = Spawn(class'GameHandler', self);
     GameHandler.WormholeMutator = self;
     GameHandler.EventGrid = EventGrid;
