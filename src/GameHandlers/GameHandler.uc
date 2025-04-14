@@ -375,11 +375,71 @@ function array<PlayerController> FilterByTeam(array<PlayerController> Players, i
         }
     }
 
-    Log("Filtered team: " $ FilteredPlayers.Length, 'Wormhole');
-
     return FilteredPlayers;
 }
-//
+
+function array<PlayerController> SortByScoreDescending(array<PlayerController> Players)
+{
+    local array<PlayerController> SortedPlayers;
+    local int i, j;
+    local PlayerController Temp;
+
+    // Copy the input array
+    SortedPlayers.Length = Players.Length;
+    for(i = 0; i < Players.Length; i++)
+    {
+        SortedPlayers[i] = Players[i];
+    }
+
+    // Bubble sort in descending order
+    for(i = 0; i < SortedPlayers.Length - 1; i++)
+    {
+        for(j = 0; j < SortedPlayers.Length - i - 1; j++)
+        {
+            if(SortedPlayers[j].PlayerReplicationInfo.Score < SortedPlayers[j + 1].PlayerReplicationInfo.Score)
+            {
+                // Swap
+                Temp = SortedPlayers[j];
+                SortedPlayers[j] = SortedPlayers[j + 1];
+                SortedPlayers[j + 1] = Temp;
+            }
+        }
+    }
+
+    return SortedPlayers;
+}
+
+function array<PlayerController> SortByScoreAscending(array<PlayerController> Players)
+{
+    local array<PlayerController> SortedPlayers;
+    local int i, j;
+    local PlayerController Temp;
+
+    // Copy the input array
+    SortedPlayers.Length = Players.Length;
+    for(i = 0; i < Players.Length; i++)
+    {
+        SortedPlayers[i] = Players[i];
+    }
+
+    // Bubble sort in ascending order
+    for(i = 0; i < SortedPlayers.Length - 1; i++)
+    {
+        for(j = 0; j < SortedPlayers.Length - i - 1; j++)
+        {
+            if(SortedPlayers[j].PlayerReplicationInfo.Score > SortedPlayers[j + 1].PlayerReplicationInfo.Score)
+            {
+                // Swap
+                Temp = SortedPlayers[j];
+                SortedPlayers[j] = SortedPlayers[j + 1];
+                SortedPlayers[j + 1] = Temp;
+            }
+        }
+    }
+
+    return SortedPlayers;
+}
+// ========================================
 
 function string FormatPlayerName(PlayerController PC)
 {
