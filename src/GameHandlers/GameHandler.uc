@@ -8,7 +8,7 @@ enum TimerModeType
 
 var MutWormhole WormholeMutator;
 var TimerModeType TimerMode;
-var EventGrid EventGrid;
+var EventBus EventBus;
 var bool bIsCoopGame;
 var bool bGameStarted;
 var bool bGameEnded;
@@ -70,7 +70,7 @@ public function SendMatchInfo()
     Json.AddString("ServerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameReplicationInfo.ServerName));
     Json.AddString("GameType", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Level.Game.GameName));
     Json.AddString("MapName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(GetMapTitle()));
-    EventGrid.SendEvent("match/info", Json);
+    EventBus.SendEvent("match/info", Json);
 }
 
 public function MonitorGame()
@@ -79,7 +79,7 @@ public function MonitorGame()
 public function HandleMatchStarted()
 {
     bGameStarted = true;
-    EventGrid.SendEvent("match/started", None);
+    EventBus.SendEvent("match/started", None);
 }
 
 function AwaitMatchEnded()
@@ -91,7 +91,7 @@ function AwaitMatchEnded()
 function HandleMatchEnded()
 {
     GameEndedListener.Destroy();
-    EventGrid.SendEvent("match/ended", None);
+    EventBus.SendEvent("match/ended", None);
 }
 
 function HandleActorSpawned(Actor Other)
@@ -126,7 +126,7 @@ function SendCommandNotAvailable()
     Color.AddInt("B", 0);
 
     Json.AddJson("Color", Color);
-    EventGrid.SendEvent("wormhole/relay/discordembed", Json);
+    EventBus.SendEvent("wormhole/relay/discordembed", Json);
 }
 
 function HandleCommandListCommand()
@@ -155,7 +155,7 @@ function HandleCommandListCommand()
     }
 
     Json.AddString("Description", Description);
-    EventGrid.SendEvent("wormhole/relay/discordembed", Json);
+    EventBus.SendEvent("wormhole/relay/discordembed", Json);
 }
 
 function string GetMapTitle()
@@ -210,7 +210,7 @@ function HandleStatusCommand()
 
     // Add fields to embed & send ìt
     Json.AddArrayJson("Fields", Fields);
-    EventGrid.SendEvent("wormhole/relay/discordembed", Json);
+    EventBus.SendEvent("wormhole/relay/discordembed", Json);
 
     // Clear all json objects, so memory is freed up after sending
     for(i = 0; i < Fields.Length; i++)

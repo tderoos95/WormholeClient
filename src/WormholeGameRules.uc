@@ -1,7 +1,7 @@
 class WormholeGameRules extends GameRules;
 
 var MutWormhole WormholeMutator;
-var EventGrid EventGrid;
+var EventBus EventBus;
 
 var string PlayerSuicided;
 var string StringSuicide;
@@ -21,7 +21,7 @@ function PreBeginPlay()
 {
     Super.PreBeginPlay();
     WormholeMutator = MutWormhole(Owner);
-    EventGrid = WormholeMutator.EventGrid;
+    EventBus = WormholeMutator.EventBus;
 }
 
 function bool PreventDeath(Pawn KilledPawn, Controller Killer, class<DamageType> DamageType, vector HitLocation)
@@ -113,8 +113,8 @@ function OnPlayerKilled(Controller Killer, PlayerController Killed, class<Damage
     Json.AddString("DeathMessage", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(DeathMessage));
 
 	if (bSuicide)
-		EventGrid.SendEvent("player/suicided", Json);
-	else EventGrid.SendEvent("player/died", Json);
+		EventBus.SendEvent("player/suicided", Json);
+	else EventBus.SendEvent("player/died", Json);
 
     // Send player OUT
 	if (Killed.PlayerReplicationInfo != None && Killed.PlayerReplicationInfo.bOutOfLives)
@@ -127,7 +127,7 @@ function OnPlayerOut(PlayerController Player)
 
 	Json = new class'JsonObject';
 	Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Player.PlayerReplicationInfo.PlayerName));
-	EventGrid.SendEvent("player/out", Json);
+	EventBus.SendEvent("player/out", Json);
 }
 
 function OnFirstBlood(PlayerController Killer)
@@ -136,7 +136,7 @@ function OnFirstBlood(PlayerController Killer)
 
 	Json = new class'JsonObject';
 	Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Killer.PlayerReplicationInfo.PlayerName));
-	EventGrid.SendEvent("match/firstblood", Json);
+	EventBus.SendEvent("match/firstblood", Json);
 }
 
 defaultproperties

@@ -1,4 +1,4 @@
-class MutWormholeEventGridSubscriber extends EventGridSubscriber;
+class MutWormholeEventBusSubscriber extends EventBusSubscriber;
 
 const ConnectionEstablished = "wormhole/connection/established";
 const CommandPrefix = "wormhole/command/";

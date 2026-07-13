@@ -9,12 +9,12 @@ var IpAddr ServerAddress;
 
 var bool bConnected;
 
-// EventGrid subscribers
-var RemoteProcessingEventGridSubscriber RemoteProcessingEventGridSubscriber;
-var ConnectionEventGridSubscriber ConnectionEventGridSubscriber;
+// EventBus subscribers
+var RemoteProcessingEventBusSubscriber RemoteProcessingEventBusSubscriber;
+var ConnectionEventBusSubscriber ConnectionEventBusSubscriber;
 
-// EventGrid for debugging purposes
-var EventGrid EventGrid;
+// EventBus for debugging purposes
+var EventBus EventBus;
 var JsonObject DebugJson;
 
 // Delegates
@@ -35,15 +35,15 @@ function LoadSettings()
 
 function SpawnSubscribers()
 {
-	RemoteProcessingEventGridSubscriber = Spawn(Settings.RemoteProcessingEventGridSubscriberClass, self);
-	ConnectionEventGridSubscriber = Spawn(class'ConnectionEventGridSubscriber', self);
-	EventGrid = RemoteProcessingEventGridSubscriber.GetOrCreateEventGrid();
+	RemoteProcessingEventBusSubscriber = Spawn(Settings.RemoteProcessingEventBusSubscriberClass, self);
+	ConnectionEventBusSubscriber = Spawn(class'ConnectionEventBusSubscriber', self);
+	EventBus = RemoteProcessingEventBusSubscriber.GetOrCreateEventBus();
 }
 
-function SendDebugDataToEventGrid(string Topic, JsonObject Json)
+function SendDebugDataToEventBus(string Topic, JsonObject Json)
 {
 	if(Settings.bDebug)
-		EventGrid.SendEvent(Topic, Json);
+		EventBus.SendEvent(Topic, Json);
 }
 
 function SetConnection(string Server, int Port)
@@ -100,7 +100,7 @@ function SendJson(JsonObject Json)
 	{
 		DebugJson = new class'JsonObject';
 		DebugJson.AddString("Data", Data);
-		SendDebugDataToEventGrid("wormhole/debug/sendtext", DebugJson);
+		SendDebugDataToEventBus("wormhole/debug/sendtext", DebugJson);
 	}
 
 	if(Settings.bDebugDataFlow)
@@ -152,20 +152,20 @@ function UnwrapIncomingJson(JsonObject Json)
 	Json.RemoveArrayValue("arguments");
 }
 
-function ForwardToEventGrid(JsonObject Json)
+function ForwardToEventBus(JsonObject Json)
 {
 	local string Target;
 
 	Target = Json.GetString("Target");
 
 	if(Len(Target) > 0)
-		EventGrid.SendEvent(Target, Json);
+		EventBus.SendEvent(Target, Json);
 }
 
 event Closed()
 {
-	EventGrid.SendEvent("wormhole/connection/lost", None);
-	SendDebugDataToEventGrid("wormhole/debug/disconnected", None);
+	EventBus.SendEvent("wormhole/connection/lost", None);
+	SendDebugDataToEventBus("wormhole/debug/disconnected", None);
 	GotoState('NotConnected');
 }
 
@@ -177,25 +177,25 @@ auto state NotConnected
 		{
 			if(BindPort() == 0)
 			{
-				EventGrid.SendEvent("wormhole/connection/failed", None);
+				EventBus.SendEvent("wormhole/connection/failed", None);
 				log("ERROR - Can't bind port for wormhole connection.", Name);
 			}
 			else
 			{
 				log("Attempting to connect to wormhole remote server...", Name);
-				EventGrid.SendEvent("wormhole/connection/attempt", None);
+				EventBus.SendEvent("wormhole/connection/attempt", None);
 				Open(ServerAddress);
 			}
 		}
 		else if(ServerHostName != "" && ServerAddress.Port > 0)
 		{
-			SendDebugDataToEventGrid("wormhole/debug/resolving", None);
+			SendDebugDataToEventBus("wormhole/debug/resolving", None);
 			Resolve(ServerHostName);
 		}
 		else
 		{
-			SendDebugDataToEventGrid("wormhole/debug/failed", None);
-			EventGrid.SendEvent("wormhole/connection/attempt/failed", None);
+			SendDebugDataToEventBus("wormhole/debug/failed", None);
+			EventBus.SendEvent("wormhole/connection/attempt/failed", None);
 			log("ERROR - Missing server address or port.", Name);
 		}
 	}
@@ -203,14 +203,14 @@ auto state NotConnected
 	function Reconnect()
 	{
 		log("Attempting to connect to wormhole remote server...", Name);
-		EventGrid.SendEvent("wormhole/connection/attempt", None);
+		EventBus.SendEvent("wormhole/connection/attempt", None);
 		Close();
 		Open(ServerAddress);
 	}
 	
 	event Resolved(IpAddr Address)
 	{
-		SendDebugDataToEventGrid("wormhole/debug/resolved", None);
+		SendDebugDataToEventBus("wormhole/debug/resolved", None);
 
 		if(Address.Addr != 0)
 		{
@@ -223,14 +223,14 @@ auto state NotConnected
 	
 	event ResolveFailed()
 	{
-		SendDebugDataToEventGrid("wormhole/debug/resolvefailed", None);
+		SendDebugDataToEventBus("wormhole/debug/resolvefailed", None);
 		log("ERROR - Could not resolve server address.", Name);
 	}
 	
 	event Opened()
 	{
-		EventGrid.SendEvent("wormhole/connection/established", None);
-		SendDebugDataToEventGrid("wormhole/debug/connected", None);
+		EventBus.SendEvent("wormhole/connection/established", None);
+		SendDebugDataToEventBus("wormhole/debug/connected", None);
 		GotoState('AwaitingHandshake');
 	}
 	
@@ -239,7 +239,7 @@ begin:
 	{
 		DebugJson = new class'JsonObject';
 		DebugJson.AddString("State", "NotConnected");
-		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
+		SendDebugDataToEventBus("wormhole/debug/statechanged", DebugJson);
 	}
 }
 
@@ -271,7 +271,7 @@ state AwaitingHandshake
 		{
 			DebugJson = new class'JsonObject';
 			DebugJson.AddString("Data", Data);
-			SendDebugDataToEventGrid("wormhole/debug/sendtext", DebugJson);
+			SendDebugDataToEventBus("wormhole/debug/sendtext", DebugJson);
 		}
 
 		if(Settings.bDebugDataFlow)
@@ -296,7 +296,7 @@ state AwaitingHandshake
 		}
 
 		Json = DeserializeJson(Message);
-		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
+		SendDebugDataToEventBus("wormhole/debug/receivedtext", Json);
 
 		if(Len(Json.GetString("error")) == 0)
 			GotoState('AwaitingAuthentication');
@@ -320,7 +320,7 @@ Begin:
 	{
 		DebugJson = new class'JsonObject';
 		DebugJson.AddString("State", "AwaitingHandshake");
-		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
+		SendDebugDataToEventBus("wormhole/debug/statechanged", DebugJson);
 	}
 
 	SendHandshakeRequest();
@@ -351,8 +351,8 @@ state AwaitingAuthentication // HandshakePerformed
 
 		Json = DeserializeJson(Message);
 		UnwrapIncomingJson(Json);
-		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
-		ForwardToEventGrid(Json);
+		SendDebugDataToEventBus("wormhole/debug/receivedtext", Json);
+		ForwardToEventBus(Json);
 	}
 
 begin:
@@ -362,7 +362,7 @@ begin:
 	{
 		DebugJson = new class'JsonObject';
 		DebugJson.AddString("State", "AwaitingAuthentication");
-		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
+		SendDebugDataToEventBus("wormhole/debug/statechanged", DebugJson);
 	}
 
 	SendAuthenticationRequest();
@@ -381,8 +381,8 @@ state Authenticated
 		
 		Json = DeserializeJson(Message);
 		UnwrapIncomingJson(Json);
-		SendDebugDataToEventGrid("wormhole/debug/receivedtext", Json);
-		ForwardToEventGrid(Json);
+		SendDebugDataToEventBus("wormhole/debug/receivedtext", Json);
+		ForwardToEventBus(Json);
 	}
 	
 Begin:
@@ -392,7 +392,7 @@ Begin:
 	{
 		DebugJson = new class'JsonObject';
 		DebugJson.AddString("State", "Authenticated");
-		SendDebugDataToEventGrid("wormhole/debug/statechanged", DebugJson);
+		SendDebugDataToEventBus("wormhole/debug/statechanged", DebugJson);
 	}
 }
 

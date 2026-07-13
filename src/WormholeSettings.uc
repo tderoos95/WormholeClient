@@ -12,7 +12,7 @@ var globalconfig int Port;
 var globalconfig string Token;
 
 var globalconfig string ChatSpectatorName;
-var globalconfig class<RemoteProcessingEventGridSubscriber> RemoteProcessingEventGridSubscriberClass;
+var globalconfig class<RemoteProcessingEventBusSubscriber> RemoteProcessingEventBusSubscriberClass;
 var globalconfig array<MutWormhole.GameHandlerRegistration> GameHandlers;
 var globalconfig array<class<WormholePlugin> > Plugins;
 
@@ -28,7 +28,7 @@ defaultproperties
     HostName="gateway.wormhole.unrealuniverse.net"
     Port=13000
 
-    RemoteProcessingEventGridSubscriberClass=class'Wormhole.RemoteProcessingEventGridSubscriber'
+    RemoteProcessingEventBusSubscriberClass=class'Wormhole.RemoteProcessingEventBusSubscriber'
     GameHandlers(0)=(GameTypeName="SkaarjPack.Invasion",GameHandler=class'GameHandler_Invasion');
     GameHandlers(1)=(GameTypeName="UnrealGame.ASGameInfo",GameHandler=class'GameHandler_Assault');
 }

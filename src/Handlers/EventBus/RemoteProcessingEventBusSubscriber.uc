@@ -1,4 +1,4 @@
-class RemoteProcessingEventGridSubscriber extends WormholeEventGridSubscriber;
+class RemoteProcessingEventBusSubscriber extends WormholeEventBusSubscriber;
 
 // It is by no means necessary to write all of these events down,
 // however, it creates a good overview of which events are being sent.

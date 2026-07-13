@@ -1,4 +1,4 @@
-class ConnectionEventGridSubscriber extends WormholeEventGridSubscriber;
+class ConnectionEventBusSubscriber extends WormholeEventBusSubscriber;
 
 // Connection topics
 const AuthenticationResponse     = "wormhole/authentication/response";
@@ -13,7 +13,7 @@ const SuccessfullyAuthenticated  = "wormhole/internal/authenticated";
 const ConnectionTimeOutTimer     = "wormhole/connection/timer/timeout";
 const ReconnectTimer             = "wormhole/connection/timer/reconnect";
 
-var EventGridTimerController TimerController; 
+var EventBusTimerController TimerController; 
 var WormholeSettings Settings;
 
 function PostBeginPlay()
@@ -59,7 +59,7 @@ function ProcessAuthenticationResponse(JsonObject Json)
 
 function HandleAuthenticationSuccessful()
 {
-    EventGrid.SendEvent(SuccessfullyAuthenticated, None);
+    EventBus.SendEvent(SuccessfullyAuthenticated, None);
 }
 
 function HandleConnectionAttempt()

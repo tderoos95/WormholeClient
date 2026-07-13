@@ -1,4 +1,4 @@
-class ChatSpectatorEventGridSubscriber extends EventGridSubscriber;
+class ChatSpectatorEventBusSubscriber extends EventBusSubscriber;
 
 const DiscordChat = "discord/chatmessage";
 

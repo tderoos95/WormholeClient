@@ -2,8 +2,8 @@ class ChatSpectator extends MessagingSpectator;
 
 var MutWormhole WormholeMutator;
 var string SpectatorName;
-var ChatSpectatorEventGridSubscriber SpectatorEventGridSubscriber;
-var EventGrid EventGrid;
+var ChatSpectatorEventBusSubscriber SpectatorEventBusSubscriber;
+var EventBus EventBus;
 
 event PreBeginPlay()
 {
@@ -11,11 +11,11 @@ event PreBeginPlay()
 	
 	WormholeMutator = MutWormhole(Owner);
 
-	SpectatorEventGridSubscriber = Spawn(class'ChatSpectatorEventGridSubscriber', self);
-	EventGrid = SpectatorEventGridSubscriber.GetOrCreateEventGrid();
+	SpectatorEventBusSubscriber = Spawn(class'ChatSpectatorEventBusSubscriber', self);
+	EventBus = SpectatorEventBusSubscriber.GetOrCreateEventBus();
 	SpectatorName = WormholeMutator.Settings.ChatSpectatorName;
 
-	EventGrid.SendEvent("wormhole/chatspectator/chatspecator_name_" $ SpectatorName, None);
+	EventBus.SendEvent("wormhole/chatspectator/chatspecator_name_" $ SpectatorName, None);
 }
 
 function InitPlayerReplicationInfo()
@@ -43,7 +43,7 @@ function HandleChat(PlayerReplicationInfo PRI, coerce string Message, name Type)
 	Json = new class'JsonObject';
 	Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(PRI.PlayerName));
 	Json.AddString("Message", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(FormattedMessage));
-	EventGrid.SendEvent("player/chat", Json);
+	EventBus.SendEvent("player/chat", Json);
 }
 
 defaultproperties

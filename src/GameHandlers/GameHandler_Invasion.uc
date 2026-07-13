@@ -45,7 +45,7 @@ function OnWaveCountdownStarted()
 
     Json = new class'JsonObject';
     Json.AddInt("WaveNumber", Invasion.WaveNum);
-    EventGrid.SendEvent("match/invasion/wavecountdownstarted", Json);
+    EventBus.SendEvent("match/invasion/wavecountdownstarted", Json);
 }
 
 function OnWaveStarted()
@@ -54,7 +54,7 @@ function OnWaveStarted()
 
     Json = new class'JsonObject';
     Json.AddInt("WaveNumber", Invasion.WaveNum);
-    EventGrid.SendEvent("match/invasion/wavestarted", Json);
+    EventBus.SendEvent("match/invasion/wavestarted", Json);
 }
 
 function HandleMatchEnded()
@@ -67,7 +67,7 @@ function HandleMatchEnded()
 
     Json = new class'JsonObject';
     Json.AddBool("Victory", bVictory);
-    EventGrid.SendEvent("match/invasion/ended", Json);
+    EventBus.SendEvent("match/invasion/ended", Json);
 }
 
 function bool IsMatchVictorious()

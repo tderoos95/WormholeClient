@@ -40,7 +40,7 @@ function OnObjectiveCompleted()
     if (CompletedObjective.Instigator != None && CompletedObjective.Instigator.PlayerReplicationInfo != None)
         Json.AddString("ObjectiveInstigator", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(CompletedObjective.Instigator.PlayerReplicationInfo.PlayerName));
 
-    EventGrid.SendEvent("match/assault/objective/completed", Json);
+    EventBus.SendEvent("match/assault/objective/completed", Json);
 }
 
 function HandleMatchEnded()
@@ -50,7 +50,7 @@ function HandleMatchEnded()
     Json = new class'JsonObject';
     Json.AddString("WinnerTeamName", TeamInfo(Assault.GameReplicationInfo.Winner).TeamName);
     Json.AddInt("CompletionTime", Level.Game.GameReplicationInfo.ElapsedTime);
-    EventGrid.SendEvent("match/assault/ended", Json);
+    EventBus.SendEvent("match/assault/ended", Json);
     GameEndedListener.Destroy();
 }
 

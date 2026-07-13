@@ -1,4 +1,4 @@
-class DebugEventGridSubscriber extends EventGridSubscriber;
+class DebugEventBusSubscriber extends EventBusSubscriber;
 
 const Instantiated    = "wormhole/debug/instantiated";
 const Connected       = "wormhole/debug/connected";

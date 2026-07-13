@@ -1,5 +1,5 @@
-// Todo outsource to EventGrid library
-class EventGridTimerController extends Info;
+// Todo outsource to EventBus library
+class EventBusTimerController extends Info;
 
 struct TimerEntry {
     var string CallbackTopic;
@@ -10,12 +10,12 @@ struct TimerEntry {
 
 var array<TimerEntry> ActiveTimers;
 var float NextTimerElapse;
-var EventGrid EventGrid;
+var EventBus EventBus;
 
 function PreBeginPlay()
 {
     Super.PreBeginPlay();
-    EventGrid = MutWormhole(Owner).EventGrid;
+    EventBus = MutWormhole(Owner).EventBus;
 
     SetTimer(0.1, true);
 }
@@ -96,7 +96,7 @@ function OnTimerElapsed()
 
 function Callback(string CallbackTopic)
 {
-    EventGrid.SendEvent(CallbackTopic, None);
+    EventBus.SendEvent(CallbackTopic, None);
 }
 
 function float GetSoonestTimerElapse()

@@ -16,7 +16,7 @@ const DEVELOPER_GUID = "cc1d0dd78a34b70b5f55e3aadcddb40d";
 var WormholeSettings Settings;
 var WormholeConnection Connection;
 var ChatSpectator ChatSpectator;
-var EventGridTimerController TimerController;
+var EventBusTimerController TimerController;
 var WormholeGameRules GameRules;
 
 //=========================================================
@@ -36,9 +36,9 @@ var array<WormholePlugin> Plugins;
 //=========================================================
 // Event management
 //=========================================================
-var DebugEventGridSubscriber DebugSubscriber;
-var MutWormholeEventGridSubscriber MutatorEventGridSubscriber;
-var EventGrid EventGrid;
+var DebugEventBusSubscriber DebugSubscriber;
+var MutWormholeEventBusSubscriber MutatorEventBusSubscriber;
+var EventBus EventBus;
 
 //=========================================================
 // Tracking variables for reporting
@@ -74,9 +74,9 @@ function PreBeginPlay()
     if(Settings.bDebug) log("!! Wormhole is running in DEBUG mode, debug commands are enabled !!", 'Wormhole');
     log("=====================================================", 'Wormhole');
 
-    MutatorEventGridSubscriber = Spawn(class'MutWormholeEventGridSubscriber', self);
-    EventGrid = MutatorEventGridSubscriber.GetOrCreateEventGrid();
-    TimerController = Spawn(class'EventGridTimerController', self);
+    MutatorEventBusSubscriber = Spawn(class'MutWormholeEventBusSubscriber', self);
+    EventBus = MutatorEventBusSubscriber.GetOrCreateEventBus();
+    TimerController = Spawn(class'EventBusTimerController', self);
     ChatSpectator = Spawn(class'ChatSpectator', self);
 
     // Add Wormhole GUI
@@ -121,7 +121,7 @@ function AddGameHandler(class<GameInfo> GameType)
 
             log("Found game handler '" $ GameHandler.class $ "' for " $ GameTypeName $ "!");
             GameHandler.WormholeMutator = self;
-            GameHandler.EventGrid = EventGrid;
+            GameHandler.EventBus = EventBus;
             GameHandler.OnInitialize();
             return;
         }
@@ -130,7 +130,7 @@ function AddGameHandler(class<GameInfo> GameType)
     log("Spawning default game handler for " $ GameTypeName $ "!", 'Wormhole');
     GameHandler = Spawn(class'GameHandler', self);
     GameHandler.WormholeMutator = self;
-    GameHandler.EventGrid = EventGrid;
+    GameHandler.EventBus = EventBus;
     GameHandler.OnInitialize();
 }
 
@@ -145,7 +145,7 @@ function IntializePlugins()
     {
         Plugin = Spawn(Settings.Plugins[i]);
         log("Initializing plugin " $ Plugin.Class $ "...", 'Wormhole');
-        Plugin.EventGrid = EventGrid;
+        Plugin.EventBus = EventBus;
         Plugin.WormholeMutator = self;
 
         Plugins.Insert(0, 1);
@@ -185,10 +185,10 @@ function Mutate(string Command, PlayerController PC)
         else
         {
             PC.ClientMessage("Instantiating wormhole debug subscriber...");
-            DebugSubscriber = Spawn(class'DebugEventGridSubscriber');
+            DebugSubscriber = Spawn(class'DebugEventBusSubscriber');
             DebugSubscriber.DebuggerPC = PC;
             DebugSubscriber.Connection = Connection;
-            EventGrid.SendEvent("wormhole/debug/instantiated", None);
+            EventBus.SendEvent("wormhole/debug/instantiated", None);
         }
     }
     else if(Command ~= "Connect")
@@ -288,7 +288,7 @@ function MonitorPlayers()
             Json = new class'JsonObject';
             Json.AddString("LastName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].LastName));
             Json.AddString("NewName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PRI.PlayerName));
-            EventGrid.SendEvent("player/changedname", Json);
+            EventBus.SendEvent("player/changedname", Json);
             Players[i].LastName = Players[i].PRI.PlayerName;
         }
 
@@ -299,8 +299,8 @@ function MonitorPlayers()
             Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PRI.PlayerName));
 
             if(Players[i].PRI.bAdmin)
-                EventGrid.SendEvent("player/admin/login", Json);
-            else EventGrid.SendEvent("player/admin/logout", Json);
+                EventBus.SendEvent("player/admin/login", Json);
+            else EventBus.SendEvent("player/admin/logout", Json);
                 
             Players[i].bIsAdmin = Players[i].PRI.bAdmin;
         }
@@ -315,7 +315,7 @@ function MonitorPlayers()
                 Json = new class'JsonObject';
                 Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PC.GetHumanReadableName()));
                 Json.AddBool("IsSpectator", Players[i].PRI.bOnlySpectator);
-                EventGrid.SendEvent("player/changedspectatorstate", Json);
+                EventBus.SendEvent("player/changedspectatorstate", Json);
                 Players[i].bIsSpectator = Players[i].PRI.bOnlySpectator;
             }
             else // Changed teams
@@ -325,7 +325,7 @@ function MonitorPlayers()
                     Json = new class'JsonObject';
                     Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[i].PC.GetHumanReadableName()));
                     Json.AddInt("Team", Players[i].PRI.Team.TeamIndex);
-                    EventGrid.SendEvent("player/changedteam", Json);
+                    EventBus.SendEvent("player/changedteam", Json);
                 }
 
                 Players[i].LastTeam = Players[i].PRI.Team;
@@ -345,7 +345,7 @@ function ProcessPlayerConnected(string Ip, int PlayerIndex)
 
     Json = new class'JsonObject';
     Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[PlayerIndex].PC.GetHumanReadableName()));
-    EventGrid.SendEvent("player/connected", Json);
+    EventBus.SendEvent("player/connected", Json);
 
     Players[PlayerIndex].PRI = Players[PlayerIndex].PC.PlayerReplicationInfo;
     Players[PlayerIndex].LastName = Players[PlayerIndex].PC.GetHumanReadableName();
@@ -362,7 +362,7 @@ function ProcessPlayerDisconnected(int PlayerIndex)
 
     Json = new class'JsonObject';
     Json.AddString("PlayerName", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(Players[PlayerIndex].LastName));
-    EventGrid.SendEvent("player/disconnected", Json);
+    EventBus.SendEvent("player/disconnected", Json);
 
     for(i=0; i < Plugins.Length; i++)
         Plugins[i].OnPlayerDisconnected(PlayerIndex);
@@ -440,7 +440,7 @@ function ReportTravel(string NextURL)
     Json = new class'JsonObject';
     Json.AddString("NextGame", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(NextGame));
     Json.AddString("NextMap", class'JsonLib.JsonUtils'.static.StripIllegalCharacters(NextMap));
-    EventGrid.SendEvent("match/mapswitch", Json);
+    EventBus.SendEvent("match/mapswitch", Json);
 }
 
 final function bool PreventReportChat(PlayerReplicationInfo PRI, coerce string Message, name Type)

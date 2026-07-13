@@ -1,4 +1,4 @@
-class WormholeEventGridSubscriber extends EventGridSubscriber;
+class WormholeEventBusSubscriber extends EventBusSubscriber;
 
 var WormholeConnection WormholeConnection;
 

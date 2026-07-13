@@ -1,7 +1,7 @@
 class WormholePlugin extends Actor
     abstract;
 
-var EventGrid EventGrid;
+var EventBus EventBus;
 var MutWormhole WormholeMutator;
 
 public function OnInitialize()
